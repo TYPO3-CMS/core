@@ -100,6 +100,14 @@ class DatabaseIntegrityCheck
     public $lostPagesList = '';
 
     /**
+     * DatabaseIntegrityCheck constructor.
+     */
+    public function __construct()
+    {
+        trigger_error('TYPO3\CMS\Core\Integrity\DatabaseIntegrityCheck will be removed in TYPO3 v10.0, use TYPO3\CMS\Lowlevel\Integrity\DatabaseIntegrityCheck instead.', E_USER_DEPRECATED);
+    }
+
+    /**
      * @return array
      */
     public function getPageTranslatedPageIDArray(): array
