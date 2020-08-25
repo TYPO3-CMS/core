@@ -17,7 +17,6 @@ namespace TYPO3\CMS\Core\Database;
 
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
-use TYPO3\CMS\Core\Compatibility\PublicMethodDeprecationTrait;
 use TYPO3\CMS\Core\Database\Query\QueryHelper;
 use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
 use TYPO3\CMS\Core\Localization\LanguageService;
@@ -31,12 +30,6 @@ use TYPO3\CMS\Core\Utility\StringUtility;
  */
 class QueryGenerator
 {
-    use PublicMethodDeprecationTrait;
-
-    protected $deprecatedPublicMethods = [
-        'getTreeList' => 'Using QueryGenerator->getTreeList() is deprecated and will not be possible anymore in TYPO3 v12.0.',
-    ];
-
     /**
      * @var array
      */
@@ -255,6 +248,11 @@ class QueryGenerator
      * @var array Settings, usually from the controller, previously known as MOD_SETTINGS
      */
     protected $settings = [];
+
+    public function __contruct()
+    {
+        trigger_error(__CLASS__ . ' will be removed in TYPO3 v11.', E_USER_DEPRECATED);
+    }
 
     /**
      * Make a list of fields for current table
@@ -1579,7 +1577,7 @@ class QueryGenerator
      * @param string $permClause
      * @return string comma separated list of descendant pages
      */
-    protected function getTreeList($id, $depth, $begin = 0, $permClause = '')
+    public function getTreeList($id, $depth, $begin = 0, $permClause = '')
     {
         $depth = (int)$depth;
         $begin = (int)$begin;
