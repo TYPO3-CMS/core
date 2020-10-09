@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the TYPO3 CMS project.
  *
@@ -21,9 +23,11 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
 
 /**
- * Class SvgIconProvider provides icons that are classic <img> tags using vectors as source
+ * SvgSpriteIconProvider provides sprite icons icons and are rendered via <svg> tag into Shadow DOM
+ *
+ * @internal
  */
-class SvgIconProvider extends AbstractSvgIconProvider implements IconProviderInterface
+class SvgSpriteIconProvider extends AbstractSvgIconProvider implements IconProviderInterface
 {
     /**
      * @param Icon $icon
@@ -33,18 +37,18 @@ class SvgIconProvider extends AbstractSvgIconProvider implements IconProviderInt
      */
     protected function generateMarkup(Icon $icon, array $options): string
     {
-        if (empty($options['source'])) {
-            throw new \InvalidArgumentException('[' . $icon->getIdentifier() . '] The option "source" is required and must not be empty', 1460976566);
+        if (empty($options['sprite'])) {
+            throw new \InvalidArgumentException('[' . $icon->getIdentifier() . '] The option "source" is required and must not be empty', 1603439142);
         }
 
-        $source = $options['source'];
+        $source = $options['sprite'];
 
         if (strpos($source, 'EXT:') === 0 || strpos($source, '/') !== 0) {
             $source = GeneralUtility::getFileAbsFileName($source);
         }
 
         $source = PathUtility::getAbsoluteWebPath($source);
-        return '<img src="' . htmlspecialchars($source) . '" width="' . $icon->getDimension()->getWidth() . '" height="' . $icon->getDimension()->getHeight() . '" alt="" />';
+        return '<svg class="icon-color" role="img"><use xlink:href="' . htmlspecialchars($source) . '" /></svg>';
     }
 
     /**
@@ -55,7 +59,7 @@ class SvgIconProvider extends AbstractSvgIconProvider implements IconProviderInt
     protected function generateInlineMarkup(array $options): string
     {
         if (empty($options['source'])) {
-            throw new \InvalidArgumentException('The option "source" is required and must not be empty', 1460976610);
+            throw new \InvalidArgumentException('The option "source" is required and must not be empty', 1603439146);
         }
 
         $source = $options['source'];
