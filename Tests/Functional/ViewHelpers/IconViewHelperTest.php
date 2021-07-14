@@ -15,122 +15,79 @@ declare(strict_types=1);
  * The TYPO3 project - inspiring people to share!
  */
 
-namespace TYPO3\CMS\Core\Tests\Unit\ViewHelpers;
+namespace TYPO3\CMS\Core\Tests\Functional\ViewHelpers;
 
 use Prophecy\Argument;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Type\Icon\IconState;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\ViewHelpers\IconViewHelper;
-use TYPO3\TestingFramework\Fluid\Unit\ViewHelpers\ViewHelperBaseTestcase;
+use TYPO3\CMS\Fluid\View\StandaloneView;
+use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 
-/**
- * Test case
- */
-class IconViewHelperTest extends ViewHelperBaseTestcase
+class IconViewHelperTest extends FunctionalTestCase
 {
-    /**
-     * @var IconViewHelper
-     */
-    protected $viewHelper;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->viewHelper = $this->getAccessibleMock(IconViewHelper::class, ['renderChildren']);
-        $this->injectDependenciesIntoViewHelper($this->viewHelper);
-        $this->viewHelper->initializeArguments();
-    }
-
     /**
      * @test
      */
-    public function renderCallsIconFactoryWithDefaultSizeAndDefaultStateAndReturnsResult()
+    public function renderCallsIconFactoryWithDefaultSizeAndDefaultStateAndReturnsResult(): void
     {
         $iconFactoryProphecy = $this->prophesize(IconFactory::class);
         GeneralUtility::addInstance(IconFactory::class, $iconFactoryProphecy->reveal());
         $iconProphecy = $this->prophesize(Icon::class);
-
         $iconFactoryProphecy->getIcon('myIdentifier', Icon::SIZE_SMALL, null, IconState::cast(IconState::STATE_DEFAULT))->shouldBeCalled()->willReturn($iconProphecy->reveal());
         $iconProphecy->render(null)->shouldBeCalled()->willReturn('htmlFoo');
 
-        $this->viewHelper->setArguments([
-            'identifier' => 'myIdentifier',
-            'size' => Icon::SIZE_SMALL,
-            'overlay' => null,
-            'state' => IconState::cast(IconState::STATE_DEFAULT),
-            'alternativeMarkupIdentifier' => null
-        ]);
-
-        self::assertSame('htmlFoo', $this->viewHelper->render());
+        $view = new StandaloneView();
+        $view->setTemplateSource('<core:icon identifier="myIdentifier" size="small" state="default" />');
+        self::assertSame('htmlFoo', $view->render());
     }
 
     /**
      * @test
      */
-    public function renderCallsIconFactoryWithGivenSizeAndReturnsResult()
+    public function renderCallsIconFactoryWithGivenSizeAndReturnsResult(): void
     {
         $iconFactoryProphecy = $this->prophesize(IconFactory::class);
         GeneralUtility::addInstance(IconFactory::class, $iconFactoryProphecy->reveal());
         $iconProphecy = $this->prophesize(Icon::class);
-
         $iconFactoryProphecy->getIcon('myIdentifier', Icon::SIZE_LARGE, null, IconState::cast(IconState::STATE_DEFAULT))->shouldBeCalled()->willReturn($iconProphecy->reveal());
         $iconProphecy->render(null)->shouldBeCalled()->willReturn('htmlFoo');
 
-        $this->viewHelper->setArguments([
-            'identifier' => 'myIdentifier',
-            'size' => Icon::SIZE_LARGE,
-            'overlay' => null,
-            'state' => IconState::cast(IconState::STATE_DEFAULT),
-            'alternativeMarkupIdentifier' => null
-        ]);
-
-        self::assertSame('htmlFoo', $this->viewHelper->render());
+        $view = new StandaloneView();
+        $view->setTemplateSource('<core:icon identifier="myIdentifier" size="large" state="default" />');
+        self::assertSame('htmlFoo', $view->render());
     }
 
     /**
      * @test
      */
-    public function renderCallsIconFactoryWithGivenStateAndReturnsResult()
+    public function renderCallsIconFactoryWithGivenStateAndReturnsResult(): void
     {
         $iconFactoryProphecy = $this->prophesize(IconFactory::class);
         GeneralUtility::addInstance(IconFactory::class, $iconFactoryProphecy->reveal());
         $iconProphecy = $this->prophesize(Icon::class);
-
         $iconFactoryProphecy->getIcon('myIdentifier', Icon::SIZE_SMALL, null, IconState::cast(IconState::STATE_DISABLED))->shouldBeCalled()->willReturn($iconProphecy->reveal());
         $iconProphecy->render(null)->shouldBeCalled()->willReturn('htmlFoo');
 
-        $this->viewHelper->setArguments([
-            'identifier' => 'myIdentifier',
-            'size' => Icon::SIZE_SMALL,
-            'overlay' => null,
-            'state' => IconState::cast(IconState::STATE_DISABLED),
-            'alternativeMarkupIdentifier' => null
-        ]);
-
-        self::assertSame('htmlFoo', $this->viewHelper->render());
+        $view = new StandaloneView();
+        $view->setTemplateSource('<core:icon identifier="myIdentifier" size="small" state="disabled" />');
+        self::assertSame('htmlFoo', $view->render());
     }
 
     /**
      * @test
      */
-    public function renderCallsIconFactoryWithGivenOverlayAndReturnsResult()
+    public function renderCallsIconFactoryWithGivenOverlayAndReturnsResult(): void
     {
         $iconFactoryProphecy = $this->prophesize(IconFactory::class);
         GeneralUtility::addInstance(IconFactory::class, $iconFactoryProphecy->reveal());
         $iconProphecy = $this->prophesize(Icon::class);
-
         $iconFactoryProphecy->getIcon('myIdentifier', Argument::any(), 'overlayString', IconState::cast(IconState::STATE_DEFAULT))->shouldBeCalled()->willReturn($iconProphecy->reveal());
         $iconProphecy->render(null)->shouldBeCalled()->willReturn('htmlFoo');
 
-        $this->viewHelper->setArguments([
-            'identifier' => 'myIdentifier',
-            'size' => Icon::SIZE_LARGE,
-            'overlay' => 'overlayString',
-            'state' => IconState::cast(IconState::STATE_DEFAULT),
-            'alternativeMarkupIdentifier' => null
-        ]);
-        self::assertSame('htmlFoo', $this->viewHelper->render());
+        $view = new StandaloneView();
+        $view->setTemplateSource('<core:icon identifier="myIdentifier" size="large" state="default" overlay="overlayString" />');
+        self::assertSame('htmlFoo', $view->render());
     }
 }
