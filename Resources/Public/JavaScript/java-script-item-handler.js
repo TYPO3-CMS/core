@@ -10,4 +10,4 @@
  *
  * The TYPO3 project - inspiring people to share!
  */
-import RegularEvent from"TYPO3/CMS/Core/Event/RegularEvent.js";class ThrottleEvent extends RegularEvent{constructor(t,e,r){super(t,e),this.callback=this.throttle(e,r)}throttle(t,e){let r=!1;return function(...l){r||(t.apply(this,l),r=!0,setTimeout(()=>{r=!1,t.apply(this,l)},e))}}}export default ThrottleEvent;
+"use strict";if(document.currentScript){const t=document.currentScript.textContent.replace(/^\s*\/\*\s*|\s*\*\/\s*/g,""),e=JSON.parse(t);(t=>import(t).catch(()=>window.importShim(t)))("@typo3/core/java-script-item-processor.js").then(({JavaScriptItemProcessor:t})=>{(new t).processItems(e)})}

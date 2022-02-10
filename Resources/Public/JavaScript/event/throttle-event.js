@@ -10,4 +10,4 @@
  *
  * The TYPO3 project - inspiring people to share!
  */
-import RegularEvent from"TYPO3/CMS/Core/Event/RegularEvent.js";class DebounceEvent extends RegularEvent{constructor(e,t,l=250,n=!1){super(e,t),this.callback=this.debounce(this.callback,l,n)}debounce(e,t,l){let n=null;return function(...u){const c=l&&!n;clearTimeout(n),c?(e.apply(this,u),n=setTimeout(()=>{n=null},t)):n=setTimeout(()=>{n=null,l||e.apply(this,u)},t)}}}export default DebounceEvent;
+import RegularEvent from"@typo3/core/event/regular-event.js";class ThrottleEvent extends RegularEvent{constructor(t,e,r){super(t,e),this.callback=this.throttle(e,r)}throttle(t,e){let r=!1;return function(...l){r||(t.apply(this,l),r=!0,setTimeout(()=>{r=!1,t.apply(this,l)},e))}}}export default ThrottleEvent;
