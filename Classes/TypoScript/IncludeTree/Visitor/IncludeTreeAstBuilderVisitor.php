@@ -17,7 +17,7 @@ declare(strict_types=1);
 
 namespace TYPO3\CMS\Core\TypoScript\IncludeTree\Visitor;
 
-use TYPO3\CMS\Core\TypoScript\AST\AstBuilder;
+use TYPO3\CMS\Core\TypoScript\AST\AstBuilderInterface;
 use TYPO3\CMS\Core\TypoScript\AST\Node\RootNode;
 use TYPO3\CMS\Core\TypoScript\IncludeTree\IncludeNode\IncludeInterface;
 use TYPO3\CMS\Core\TypoScript\IncludeTree\IncludeNode\SysTemplateInclude;
@@ -44,12 +44,15 @@ final class IncludeTreeAstBuilderVisitor implements IncludeTreeVisitorInterface
      */
     private array $flatConstants = [];
 
-    public function __construct(private readonly AstBuilder $astBuilder)
+    public function __construct(private readonly AstBuilderInterface $astBuilder)
     {
         $this->ast = new RootNode();
     }
 
     /**
+     * When 'setup' is parsed, setting resolved flat constants here will make
+     * the AST builder substitute these constants.
+     *
      * @param array<string, string> $flatConstants
      */
     public function setFlatConstants(array $flatConstants)
