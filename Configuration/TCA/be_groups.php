@@ -249,6 +249,16 @@ return [
                 'fixedFont' => true,
             ],
         ],
+        'tsconfig_includes' => [
+            'label' => 'LLL:EXT:core/Resources/Private/Language/locallang_tca.xlf:tsconfig_includes',
+            'config' => [
+                'type' => 'select',
+                'renderType' => 'selectMultipleSideBySide',
+                'size' => 10,
+                'items' => [],
+                'softref' => 'ext_fileref',
+            ],
+        ],
         'subgroup' => [
             'label' => 'LLL:EXT:core/Resources/Private/Language/locallang_tca.xlf:be_groups.subgroup',
             'config' => [
@@ -294,7 +304,7 @@ return [
             --div--;core.form.tabs:mounts,
                 db_mountpoints, file_mountpoints, file_permissions, category_perms,
             --div--;core.form.tabs:options,
-                TSconfig,
+                TSconfig, tsconfig_includes,
             --div--;core.form.tabs:access,
                 hidden,
             --div--;core.form.tabs:notes,

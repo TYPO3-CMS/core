@@ -51,6 +51,9 @@
       <trans-unit id="TSconfig">
         <source>TSconfig</source>
       </trans-unit>
+      <trans-unit id="tsconfig_includes">
+        <source>Include static TSconfig</source>
+      </trans-unit>
       <trans-unit id="be_users.username">
         <source>Username</source>
       </trans-unit>

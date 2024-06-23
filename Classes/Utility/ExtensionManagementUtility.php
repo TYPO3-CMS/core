@@ -1036,19 +1036,35 @@ class ExtensionManagementUtility
      */
     public static function registerPageTSConfigFile(string $extKey, string $filePath, string $title): void
     {
-        if (!$extKey) {
-            throw new \InvalidArgumentException('No extension key given.', 1447789490);
-        }
-        if (!$filePath) {
-            throw new \InvalidArgumentException('No file path given.', 1447789491);
-        }
-        if (!is_array($GLOBALS['TCA']['pages']['columns'] ?? null)) {
-            throw new \InvalidArgumentException('No TCA definition for table "pages".', 1447789492);
-        }
+        self::registerTsConfig('pages', $extKey, $filePath, $title);
+    }
 
-        $value = str_replace(',', '', 'EXT:' . $extKey . '/' . $filePath);
-        $itemArray = ['label' => trim($title . ' (' . $extKey . ')'), 'value' => $value];
-        $GLOBALS['TCA']['pages']['columns']['tsconfig_includes']['config']['items'][] = $itemArray;
+    /**
+     * Call this method to add an entry in the User TSconfig list found in be_users
+     * FOR USE in Configuration/TCA/Overrides/be_users.php
+     *
+     * @param string $extKey The extension key
+     * @param string $filePath The path where the TSconfig file is located
+     * @param string $title The title in the selector box
+     * @throws \InvalidArgumentException
+     */
+    public static function registerUserTSConfigFile(string $extKey, string $filePath, string $title): void
+    {
+        self::registerTsConfig('be_users', $extKey, $filePath, $title);
+    }
+
+    /**
+     * Call this method to add an entry in the Usergroup TSconfig list found in be_groups
+     * FOR USE in Configuration/TCA/Overrides/be_groups.php
+     *
+     * @param string $extKey The extension key
+     * @param string $filePath The path where the TSconfig file is located
+     * @param string $title The title in the selector box
+     * @throws \InvalidArgumentException
+     */
+    public static function registerUserGroupTSConfigFile(string $extKey, string $filePath, string $title): void
+    {
+        self::registerTsConfig('be_groups', $extKey, $filePath, $title);
     }
 
     /**
@@ -1190,5 +1206,22 @@ class ExtensionManagementUtility
             throw new \RuntimeException('Extension not loaded', 1342345487);
         }
         static::$packageManager->deactivatePackage($extensionKey);
+    }
+
+    protected static function registerTsConfig(string $tableName, string $extKey, string $filePath, string $title): void
+    {
+        if (!$extKey) {
+            throw new \InvalidArgumentException('No extension key given.', 1447789490);
+        }
+        if (!$filePath) {
+            throw new \InvalidArgumentException('No file path given.', 1447789491);
+        }
+        if (!is_array($GLOBALS['TCA'][$tableName]['columns'] ?? null)) {
+            throw new \InvalidArgumentException(sprintf('No TCA definition for table "%s".', $tableName), 1447789492);
+        }
+
+        $value = str_replace(',', '', 'EXT:' . $extKey . '/' . $filePath);
+        $itemArray = ['label' => trim($title . ' (' . $extKey . ')'), 'value' => $value];
+        $GLOBALS['TCA'][$tableName]['columns']['tsconfig_includes']['config']['items'][] = $itemArray;
     }
 }

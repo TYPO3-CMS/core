@@ -308,6 +308,16 @@ return [
                 'fixedFont' => true,
             ],
         ],
+        'tsconfig_includes' => [
+            'label' => 'LLL:EXT:core/Resources/Private/Language/locallang_tca.xlf:tsconfig_includes',
+            'config' => [
+                'type' => 'select',
+                'renderType' => 'selectMultipleSideBySide',
+                'size' => 10,
+                'items' => [],
+                'softref' => 'ext_fileref',
+            ],
+        ],
         'lastlogin' => [
             'label' => 'LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.lastlogin',
             'config' => [
@@ -356,7 +366,7 @@ return [
                 --div--;core.form.tabs:mounts,
                     db_mountpoints, options, file_mountpoints, file_permissions, category_perms,
                 --div--;core.form.tabs:options,
-                    TSconfig,
+                    TSconfig, tsconfig_includes,
                 --div--;core.form.tabs:access,
                     --palette--;;status,
                     --palette--;;timeRestriction,
@@ -375,7 +385,7 @@ return [
                 --div--;core.form.tabs:personaldata,
                     realName, email, avatar, lang,
                 --div--;core.form.tabs:options,
-                    TSconfig, db_mountpoints, options, file_mountpoints,
+                    TSconfig, tsconfig_includes, db_mountpoints, options, file_mountpoints,
                 --div--;core.form.tabs:access,
                     --palette--;;status,
                     --palette--;;timeRestriction,

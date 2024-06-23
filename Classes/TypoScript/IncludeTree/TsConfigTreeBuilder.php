@@ -102,9 +102,27 @@ final class TsConfigTreeBuilder
             if (!empty($backendUser->userGroups[$groupId]['TSconfig'] ?? '')) {
                 $includeTree->addChild($this->getTreeFromString('userTsConfig-group-' . $groupId, $backendUser->userGroups[$groupId]['TSconfig'], $tokenizer, $cache));
             }
+            if (trim($backendUser->userGroups[$groupId]['tsconfig_includes'] ?? '')) {
+                $includeTsConfigFileList = GeneralUtility::trimExplode(',', $backendUser->userGroups[$groupId]['tsconfig_includes'], true);
+                foreach ($includeTsConfigFileList as $key => $includeTsConfigFile) {
+                    $content = $this->getContentOfTsconfigFile($includeTsConfigFile);
+                    if (!empty($content)) {
+                        $includeTree->addChild($this->getTreeFromString('userTsConfig-include-group' . $key, $content, $tokenizer, $cache));
+                    }
+                }
+            }
         }
         if (!empty($backendUser->user['TSconfig'] ?? '')) {
             $includeTree->addChild($this->getTreeFromString('userTsConfig-user', $backendUser->user['TSconfig'], $tokenizer, $cache));
+        }
+        if (trim($backendUser->user['tsconfig_includes'] ?? '')) {
+            $includeTsConfigFileList = GeneralUtility::trimExplode(',', $backendUser->user['tsconfig_includes'], true);
+            foreach ($includeTsConfigFileList as $key => $includeTsConfigFile) {
+                $content = $this->getContentOfTsconfigFile($includeTsConfigFile);
+                if (!empty($content)) {
+                    $includeTree->addChild($this->getTreeFromString('userTsConfig-include-user' . $key, $content, $tokenizer, $cache));
+                }
+            }
         }
 
         return $includeTree;
@@ -260,23 +278,11 @@ final class TsConfigTreeBuilder
             if (trim($page['tsconfig_includes'] ?? '')) {
                 $includeTsConfigFileList = GeneralUtility::trimExplode(',', $page['tsconfig_includes'], true);
                 foreach ($includeTsConfigFileList as $key => $includeTsConfigFile) {
-                    if (PathUtility::isExtensionPath($includeTsConfigFile)) {
-                        [$includeTsConfigFileExtensionKey, $includeTsConfigFilename] = explode('/', substr($includeTsConfigFile, 4), 2);
-                        if ($includeTsConfigFileExtensionKey !== ''
-                            && ExtensionManagementUtility::isLoaded($includeTsConfigFileExtensionKey)
-                            && $includeTsConfigFilename !== ''
-                        ) {
-                            $extensionPath = ExtensionManagementUtility::extPath($includeTsConfigFileExtensionKey);
-                            $includeTsConfigFileAndPath = PathUtility::getCanonicalPath($extensionPath . $includeTsConfigFilename);
-                            if (str_starts_with($includeTsConfigFileAndPath, $extensionPath) && file_exists($includeTsConfigFileAndPath)) {
-                                $typoScriptString = (string)file_get_contents($includeTsConfigFileAndPath);
-                                if (!empty($typoScriptString)) {
-                                    $collectedPagesTsConfigArray['pagesTsConfig-page-' . $page['uid'] . '-includes-' . $key] = [
-                                        'content' => (string)file_get_contents($includeTsConfigFileAndPath),
-                                    ];
-                                }
-                            }
-                        }
+                    $content = $this->getContentOfTsconfigFile($includeTsConfigFile);
+                    if (!empty($content)) {
+                        $collectedPagesTsConfigArray['pagesTsConfig-page-' . $page['uid'] . '-includes-' . $key] = [
+                            'content' => $content,
+                        ];
                     }
                 }
             }
@@ -285,6 +291,24 @@ final class TsConfigTreeBuilder
             }
         }
         return $collectedPagesTsConfigArray;
+    }
+
+    private function getContentOfTsconfigFile(string $path): string
+    {
+        if (PathUtility::isExtensionPath($path)) {
+            [$includeTsConfigFileExtensionKey, $includeTsConfigFilename] = explode('/', substr($path, 4), 2);
+            if ($includeTsConfigFilename !== ''
+                && $includeTsConfigFileExtensionKey !== ''
+                && ExtensionManagementUtility::isLoaded($includeTsConfigFileExtensionKey)
+            ) {
+                $extensionPath = ExtensionManagementUtility::extPath($includeTsConfigFileExtensionKey);
+                $includeTsConfigFileAndPath = PathUtility::getCanonicalPath($extensionPath . $includeTsConfigFilename);
+                if (str_starts_with($includeTsConfigFileAndPath, $extensionPath) && file_exists($includeTsConfigFileAndPath)) {
+                    return (string)file_get_contents($includeTsConfigFileAndPath);
+                }
+            }
+        }
+        return '';
     }
 
     private function getTreeFromString(
