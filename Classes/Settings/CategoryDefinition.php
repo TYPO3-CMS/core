@@ -17,17 +17,26 @@ declare(strict_types=1);
 
 namespace TYPO3\CMS\Core\Settings;
 
-use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
-
 /**
  * @internal
  */
-#[AutoconfigureTag('settings.type')]
-interface SettingsTypeInterface
+readonly class CategoryDefinition
 {
-    public function validate(mixed $value, SettingDefinition $definition): bool;
+    public function __construct(
+        public string $key,
+        public string $label,
+        public ?string $description = null,
+        public ?string $icon = null,
+        public ?string $parent = null,
+    ) {}
 
-    public function transformValue(mixed $value, SettingDefinition $definition): mixed;
+    public function toArray(): array
+    {
+        return array_filter(get_object_vars($this), fn(mixed $value) => $value !== null && $value !== []);
+    }
 
-    public function getJavaScriptModule(): string;
+    public static function __set_state(array $state): self
+    {
+        return new self(...$state);
+    }
 }

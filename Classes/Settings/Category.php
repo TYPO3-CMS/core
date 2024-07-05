@@ -15,28 +15,20 @@ declare(strict_types=1);
  * The TYPO3 project - inspiring people to share!
  */
 
-namespace TYPO3\CMS\Core\Site\Set;
+namespace TYPO3\CMS\Core\Settings;
 
-use TYPO3\CMS\Core\Settings\CategoryDefinition;
-use TYPO3\CMS\Core\Settings\SettingDefinition;
-
-readonly class SetDefinition
+/**
+ * @internal
+ */
+class Category
 {
-    /**
-     * @param list<string> $dependencies
-     * @param SettingDefinition[] $settingsDefinitions
-     * @param CategoryDefinition[] $categoryDefinitions
-     */
     public function __construct(
-        public string $name,
+        public string $key,
         public string $label,
-        public array $dependencies = [],
-        public array $optionalDependencies = [],
-        public array $settingsDefinitions = [],
-        public array $categoryDefinitions = [],
-        public ?string $typoscript = null,
-        public ?string $pagets = null,
+        public ?string $description = null,
+        public ?string $icon = null,
         public array $settings = [],
+        public array $categories = [],
     ) {}
 
     public function toArray(): array
