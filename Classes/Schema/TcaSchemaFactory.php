@@ -115,6 +115,7 @@ class TcaSchemaFactory
     public function rebuild(array $fullTca): void
     {
         $this->schemata = [];
+        ksort($fullTca);
         $relationMap = $this->relationMapBuilder->buildFromStructure($fullTca);
         foreach (array_keys($fullTca) as $table) {
             $this->build($table, $fullTca, $relationMap);

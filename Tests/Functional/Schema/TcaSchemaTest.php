@@ -39,7 +39,12 @@ final class TcaSchemaTest extends FunctionalTestCase
         $mainSchema = $factory->get('pages');
         self::assertEquals('pages', $mainSchema->getName());
         self::assertCount(count($GLOBALS['TCA']['pages']['types']), $mainSchema->getSubSchemata());
-        self::assertSame(array_keys($GLOBALS['TCA']), $factory->all()->getNames());
+
+        // factory sorts tables alphabetically, so for this test we need to sort TCA, too
+        $tables = array_keys($GLOBALS['TCA']);
+        sort($tables);
+        self::assertSame($tables, $factory->all()->getNames());
+
         $subSchema = $factory->get('pages.4');
         self::assertNotSame($mainSchema->getName(), $subSchema->getName());
 
