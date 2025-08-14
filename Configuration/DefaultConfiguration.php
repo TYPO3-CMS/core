@@ -102,6 +102,7 @@ return [
         'folderCreateMask' => '2775',
         'features' => [
             'extbase.consistentDateTimeHandling' => true,
+            'extbase.enableHistoryTracking' => false,
             'frontend.cache.autoTagging' => false,
             'redirects.hitCount' => false,
             'security.backend.htmlSanitizeRte' => false,

@@ -83,6 +83,9 @@ enum TcaSchemaCapability
     // TCA[ctrl][enablecolumns][fe_group]
     case RestrictionUserGroup;
 
+    // TCA[ctrl][extbase][enableHistoryTracking]
+    case ExtbaseHistoryTracking;
+
     case RestrictionRootLevel;
 
     // TCA[ctrl][ignoreWebMountRestriction] inverted

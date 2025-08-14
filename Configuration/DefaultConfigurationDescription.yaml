@@ -218,6 +218,9 @@ SYS:
                   <li>Interpreting <code>00:00:00</code> as non empty time value for nullable time properties
                   <li>Constructing time properties based on <code>1970-01-01</code>
                   </ul>
+              extbase.enableHistoryTracking:
+                type: bool
+                description: 'Extbase persistence changes (update, add, delete) can be tracked in the general history (sys_history database table). When enabled, it can also be configured distinctly for each database table via TCA "[$tableName][ctrl][enableHistoryTracking]" (defaults to "true" / enabled). When the feature flag is disabled, the TCA setting is not evaluated.'
               redirects.hitCount:
                 type: bool
                 description: 'Each performed redirect is counted and the time of the last hit is logged to the database when the <strong>Redirects</strong> extension is active.'
