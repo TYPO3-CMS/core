@@ -20,6 +20,7 @@ namespace TYPO3\CMS\Core\Tests\Unit\Page;
 use Symfony\Component\Translation\Translator;
 use TYPO3\CMS\Core\Cache\CacheManager;
 use TYPO3\CMS\Core\Cache\Frontend\NullFrontend;
+use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\EventDispatcher\NoopEventDispatcher;
 use TYPO3\CMS\Core\Http\ResponseFactory;
 use TYPO3\CMS\Core\Http\StreamFactory;
@@ -57,6 +58,7 @@ trait PageRendererFactoryTrait
         $resourceFactory = $this->createMock(SystemResourceFactory::class);
         $resourcePublisher = $this->createMock(SystemResourcePublisherInterface::class);
         return [
+            new Context(),
             new NullFrontend('assets'),
             new MarkerBasedTemplateService(
                 new NullFrontend('hash'),

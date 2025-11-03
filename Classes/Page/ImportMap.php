@@ -31,6 +31,8 @@ use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Mutation;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\MutationCollection;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\MutationMode;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\PolicyRegistry;
+use TYPO3\CMS\Core\SystemResource\Exception\CanNotResolvePublicResourceException;
+use TYPO3\CMS\Core\SystemResource\Exception\CanNotResolveSystemResourceException;
 use TYPO3\CMS\Core\SystemResource\Publishing\UriGenerationOptions;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -94,7 +96,8 @@ class ImportMap
      */
     public function resolveImport(
         string $specifier,
-        bool $loadImportConfiguration = true
+        bool $loadImportConfiguration = true,
+        string $uriPrefix = '/'
     ): ?string {
         $resolution = $this->dispatchResolveJavaScriptImportEvent($specifier, $loadImportConfiguration);
         if ($resolution !== null) {
@@ -107,7 +110,7 @@ class ImportMap
                 if ($loadImportConfiguration) {
                     $this->loadDependency($package);
                 }
-                return $imports[$specifier];
+                return $this->getResourceUri($imports[$specifier], $uriPrefix);
             }
 
             $specifierParts = explode('/', $specifier);
@@ -118,7 +121,7 @@ class ImportMap
                     if ($loadImportConfiguration) {
                         $this->loadDependency($package);
                     }
-                    return $imports[$prefix] . implode('/', array_slice($specifierParts, $i));
+                    return $this->getResourceUri($imports[$prefix] . implode('/', array_slice($specifierParts, $i)), $uriPrefix);
                 }
             }
         }
@@ -127,7 +130,7 @@ class ImportMap
     }
 
     public function render(
-        string $urlPrefix,
+        string $uriPrefix,
         null|string|ConsumableNonce $nonce
     ): string {
         if (count($this->extensionsToLoad) === 0 || count($this->getImportMaps()) === 0) {
@@ -136,7 +139,7 @@ class ImportMap
 
         $html = [];
 
-        $importMap = $this->composeImportMap($urlPrefix);
+        $importMap = $this->composeImportMap($uriPrefix);
         $json = json_encode(
             $importMap,
             JSON_FORCE_OBJECT | JSON_UNESCAPED_SLASHES | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_THROW_ON_ERROR
@@ -236,11 +239,12 @@ class ImportMap
 
     protected function resolveRecursiveImportMap(
         string $prefix,
-        string $path,
+        string $pathResourceIdentifier,
         array $exclude,
         string $bust
     ): array {
-        $absolutePath = GeneralUtility::getFileAbsFileName($path);
+        // @todo resolve with resource directory object once available
+        $absolutePath = GeneralUtility::getFileAbsFileName($pathResourceIdentifier);
         if (!$absolutePath || @!is_dir($absolutePath)) {
             return [];
         }
@@ -261,7 +265,7 @@ class ImportMap
         foreach ($fileIterator as $match) {
             $fileName = $match[0];
             $specifier = $prefix . ($match[1] ?? '');
-            $resourceIdentifier = $path . ($match[1] ?? '');
+            $resourceIdentifier = $pathResourceIdentifier . ($match[1] ?? '');
 
             // @todo: Abstract into an iterator?
             foreach ($exclude as $excludedPath) {
@@ -269,13 +273,7 @@ class ImportMap
                     continue 2;
                 }
             }
-            // @todo: Until the request is passed in render method, we rely on generating relative URLs
-            //        here and adding the site prefix, which is passed during rendering later on
-            //        This should be done asap, because other implementations of SystemResourcePublisherInterface
-            //        might not evaluate the uriPrefix options
-            $url = (string)PathUtility::getSystemResourceUri($resourceIdentifier, null, new UriGenerationOptions(uriPrefix: '', cacheBusting: false))
-                ->withQuery('bust=' . $bust);
-            $map[$specifier] = $url;
+            $map[$specifier] = $resourceIdentifier . '?bust=' . $bust;
         }
 
         return $map;
@@ -292,35 +290,20 @@ class ImportMap
                 continue;
             }
             if (str_ends_with($specifier, '/')) {
-                $path = is_array($address) ? ($address['path'] ?? '') : $address;
+                $resourceIdentifier = is_array($address) ? ($address['path'] ?? '') : $address;
                 $exclude = is_array($address) ? ($address['exclude'] ?? []) : [];
-                // @todo: Until the request is passed in render method, we rely on generating relative URLs
-                //        here and adding the site prefix, which is passed during rendering later on
-                //        This should be done asap, because other implementations of SystemResourcePublisherInterface
-                //        might not evaluate the uriPrefix options
-                $uri = PathUtility::getSystemResourceUri($path, null, new UriGenerationOptions(uriPrefix: '', cacheBusting: false));
-                $cacheBusted = preg_match('#[^/]@#', $path) === 1;
-                if ($bust !== null && !$cacheBusted) {
+                if ($bust !== null) {
                     // Resolve recursive importmap in order to add a bust suffix
                     // to each file.
-                    $cacheBustingSpecifiers[] = $this->resolveRecursiveImportMap($specifier, $path, $exclude, $bust);
+                    $cacheBustingSpecifiers[] = $this->resolveRecursiveImportMap($specifier, $resourceIdentifier, $exclude, $bust);
                 }
             } else {
-                // @todo: Until the request is passed in render method, we rely on generating relative URLs
-                //        here and adding the site prefix, which is passed during rendering later on
-                //        This should be done asap, because other implementations of SystemResourcePublisherInterface
-                //        might not evaluate the uriPrefix options
-                $uri = PathUtility::getSystemResourceUri($address, null, new UriGenerationOptions(uriPrefix: '', cacheBusting: false));
-                $cacheBusted = preg_match('#[^/]@#', $address) === 1;
-                if ($bust !== null && !$cacheBusted) {
-                    $uri = $uri->withQuery('bust=' . $bust);
+                $resourceIdentifier = $address;
+                if ($bust !== null) {
+                    $resourceIdentifier .= '?bust=' . $bust;
                 }
             }
-            // @todo: Until the request is passed in render method, we rely on generating relative URLs
-            //        here and adding the site prefix, which is passed during rendering later on
-            //        This should be done asap, because other implementations of SystemResourcePublisherInterface
-            //        might not evaluate the uriPrefix options
-            $imports[$specifier] = (string)$uri;
+            $imports[$specifier] = $resourceIdentifier;
         }
 
         return $imports + array_merge(...$cacheBustingSpecifiers);
@@ -339,7 +322,7 @@ class ImportMap
         }
     }
 
-    protected function composeImportMap(string $urlPrefix): array
+    protected function composeImportMap(string $uriPrefix): array
     {
         $importMaps = $this->getImportMaps();
 
@@ -354,20 +337,37 @@ class ImportMap
         unset($importMap['dependencies']);
         unset($importMap['tags']);
 
-        foreach ($importMap['imports'] ?? [] as $specifier => $url) {
-            $resolved = $urlPrefix . $url;
-            if (str_starts_with($url, 'VIRTUAL:')) {
-                $virtualName = substr($url, 8);
+        foreach ($importMap['imports'] ?? [] as $specifier => $resourceIdentifier) {
+            if (str_starts_with($resourceIdentifier, 'VIRTUAL:')) {
+                $virtualName = substr($resourceIdentifier, 8);
                 $resolved = $this->dispatchResolveVirtualJavaScriptImportEvent($virtualName);
                 if ($resolved === null) {
                     unset($importMap['imports'][$specifier]);
                     continue;
                 }
+            } else {
+                $resolved = $this->getResourceUri($resourceIdentifier, $uriPrefix);
             }
             $importMap['imports'][$specifier] = $resolved;
         }
 
         return $importMap;
+    }
+
+    /**
+     * @throws CanNotResolvePublicResourceException
+     * @throws CanNotResolveSystemResourceException
+     */
+    protected function getResourceUri(string $resourceIdentifier, $uriPrefix): string
+    {
+        return (string)PathUtility::getSystemResourceUri(
+            $resourceIdentifier,
+            null,
+            new UriGenerationOptions(
+                uriPrefix: $uriPrefix,
+                cacheBusting: false,
+            )
+        );
     }
 
     /**

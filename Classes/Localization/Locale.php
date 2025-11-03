@@ -63,7 +63,7 @@ class Locale implements \Stringable
     protected array $dependencies = [];
 
     /**
-     * Only use the contructor directly if you know what you are doing and want to create custom locales with custom dependencies.
+     * Only use the constructor directly if you know what you are doing and want to create custom locales with custom dependencies.
      * Otherwise, instantiate a new Locale object via Locales->createLocale() as it deals with registered dependencies automatically.
      */
     public function __construct(

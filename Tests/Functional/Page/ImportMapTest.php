@@ -69,7 +69,7 @@ final class ImportMapTest extends FunctionalTestCase
         $importMap = new ImportMap(new HashService(), $this->getPackages($packages));
         $url = $importMap->resolveImport('lit');
 
-        self::assertStringStartsWith('typo3conf/ext/test_importmap_core/Resources/Public/JavaScript/Contrib/lit/index.js?bust=', $url);
+        self::assertStringStartsWith('/typo3conf/ext/test_importmap_core/Resources/Public/JavaScript/Contrib/lit/index.js?bust=', $url);
     }
 
     #[Test]
@@ -79,7 +79,7 @@ final class ImportMapTest extends FunctionalTestCase
         $importMap = new ImportMap(new HashService(), $this->getPackages($packages));
         $nestedUrl = $importMap->resolveImport('@typo3/core/nested/module.js');
 
-        self::assertStringStartsWith('typo3conf/ext/test_importmap_core/Resources/Public/JavaScript/nested/module.js?bust=', $nestedUrl);
+        self::assertStringStartsWith('/typo3conf/ext/test_importmap_core/Resources/Public/JavaScript/nested/module.js?bust=', $nestedUrl);
     }
 
     #[Test]
@@ -90,7 +90,7 @@ final class ImportMapTest extends FunctionalTestCase
         $importMap = new ImportMap(new HashService(), $this->getPackages($packages), null, null, '', null, false);
         $nestedUrl = $importMap->resolveImport('@typo3/core/nested/module.js');
 
-        self::assertEquals('typo3conf/ext/test_importmap_core/Resources/Public/JavaScript/nested/module.js', $nestedUrl);
+        self::assertEquals('/typo3conf/ext/test_importmap_core/Resources/Public/JavaScript/nested/module.js', $nestedUrl);
     }
 
     #[Test]
@@ -102,7 +102,7 @@ final class ImportMapTest extends FunctionalTestCase
         $url = $importMap->resolveImport('lit');
         $output = $importMap->render('/', new ConsumableNonce());
 
-        self::assertStringStartsWith('typo3conf/ext/test_importmap_core/Resources/Public/JavaScript/Contrib/lit/index.js?bust=', $url);
+        self::assertStringStartsWith('/typo3conf/ext/test_importmap_core/Resources/Public/JavaScript/Contrib/lit/index.js?bust=', $url);
         self::assertStringContainsString('"lit/":"/typo3conf/ext/test_importmap_core/Resources/Public/JavaScript/Contrib/lit/"', $output);
         self::assertStringContainsString('"@typo3/core/Module1.js":"/typo3conf/ext/test_importmap_core/Resources/Public/JavaScript/Module1.js?bust=', $output);
         ExtensionManagementUtility::setPackageManager($this->createMock(PackageManager::class));

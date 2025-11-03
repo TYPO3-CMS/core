@@ -22,6 +22,7 @@ use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\Attributes\Test;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
+use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Core\SystemEnvironmentBuilder;
 use TYPO3\CMS\Core\Http\NormalizedParams;
 use TYPO3\CMS\Core\Http\ServerRequest;
@@ -62,6 +63,7 @@ final class PageRendererTest extends FunctionalTestCase
     private function createPageRenderer(): PageRenderer
     {
         return new PageRenderer(
+            new Context(),
             $this->get('cache.assets'),
             $this->get(MarkerBasedTemplateService::class),
             $this->get(MetaTagManagerRegistry::class),
@@ -77,18 +79,23 @@ final class PageRendererTest extends FunctionalTestCase
         );
     }
 
+    private function createRequest(int $requestType = SystemEnvironmentBuilder::REQUESTTYPE_FE): ServerRequest
+    {
+        $normalizedParams = $this->createMock(NormalizedParams::class);
+        $normalizedParams->method('getSitePath')->willReturn('/');
+        return (new ServerRequest('https://www.example.com/'))
+            ->withAttribute('applicationType', $requestType)
+            ->withAttribute('normalizedParams', $normalizedParams);
+    }
+
     #[Test]
     public function pageRendererRendersInsertsMainContentStringsInOutput(): void
     {
         $this->file->ensureFilesExistInStorage('/test.js');
         $this->file->ensureFilesExistInStorage('/test-plain.js');
-        $normalizedParams = $this->createMock(NormalizedParams::class);
-        $normalizedParams->method('getSitePath')->willReturn('/');
-        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest('https://www.example.com/'))
-            ->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_BE)
-            ->withAttribute('normalizedParams', $normalizedParams);
+        $request = $this->createRequest();
         $subject = $this->createPageRenderer();
-        $subject->setLanguage(new Locale());
+        $subject->setLanguage(new Locale(), $request);
 
         $prologueString = $expectedPrologueString = '<?xml version="1.0" encoding="utf-8" ?>';
         $subject->setXmlPrologAndDocType($prologueString);
@@ -160,7 +167,7 @@ final class PageRendererTest extends FunctionalTestCase
         $subject->setBodyContent($expectedBodyContent);
 
         $state = serialize($subject->getState());
-        $renderedString = $subject->render();
+        $renderedString = $subject->render($request);
 
         self::assertStringContainsString($expectedPrologueString, $renderedString);
         self::assertStringContainsString($expectedTitleString, $renderedString);
@@ -188,7 +195,7 @@ final class PageRendererTest extends FunctionalTestCase
 
         $stateBasedSubject = $this->createPageRenderer();
         $stateBasedSubject->updateState(unserialize($state, ['allowed_classes' => [Locale::class]]));
-        $stateBasedRenderedString = $stateBasedSubject->render();
+        $stateBasedRenderedString = $stateBasedSubject->render($request);
         self::assertStringContainsString($expectedPrologueString, $stateBasedRenderedString);
         self::assertStringContainsString($expectedTitleString, $stateBasedRenderedString);
         self::assertStringContainsString($expectedCharsetString, $stateBasedRenderedString);
@@ -227,13 +234,9 @@ final class PageRendererTest extends FunctionalTestCase
     public function pageRendererRendersFooterValues(int $requestType): void
     {
         $this->file->ensureFilesExistInStorage('/test.js');
-        $normalizedParams = $this->createMock(NormalizedParams::class);
-        $normalizedParams->method('getSitePath')->willReturn('/');
-        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest('https://www.example.com/'))
-            ->withAttribute('applicationType', $requestType)
-            ->withAttribute('normalizedParams', $normalizedParams);
         $subject = $this->createPageRenderer();
-        $subject->setLanguage(new Locale());
+        $request = $this->createRequest($requestType);
+        $subject->setLanguage(new Locale(), $request);
 
         $subject->enableMoveJsFromHeaderToFooter();
 
@@ -298,7 +301,7 @@ final class PageRendererTest extends FunctionalTestCase
             $expectedInlineAssignmentsPrefix = '<script>Object.assign(globalThis, {"TYPO3":{"settings":{';
         }
 
-        $renderedString = $subject->render();
+        $renderedString = $subject->render($request);
 
         self::assertStringContainsString($expectedFooterData, $renderedString);
         self::assertMatchesRegularExpression($expectedJsFooterLibraryRegExp, $renderedString);
@@ -318,13 +321,9 @@ final class PageRendererTest extends FunctionalTestCase
         $this->file->ensureFilesExistInStorage('/test2.js');
         $this->file->ensureFilesExistInStorage('/test3.js');
         $this->file->ensureFilesExistInStorage('/test4.js');
-        $normalizedParams = $this->createMock(NormalizedParams::class);
-        $normalizedParams->method('getSitePath')->willReturn('/');
-        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest('https://www.example.com/'))
-            ->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_BE)
-            ->withAttribute('normalizedParams', $normalizedParams);
+        $request = $this->createRequest();
         $subject = $this->createPageRenderer();
-        $subject->setLanguage(new Locale());
+        $subject->setLanguage(new Locale(), $request);
 
         $subject->addJsFooterLibrary(
             'test',
@@ -392,7 +391,7 @@ final class PageRendererTest extends FunctionalTestCase
         );
         $expectedJsFooter = '<script src="/fileadmin/test4.js?da39a3ee5e6b4b0d3255bfef95601890afd80709" type="text/javascript" nomodule="nomodule"></script>';
 
-        $renderedString = $subject->render();
+        $renderedString = $subject->render($request);
 
         self::assertStringContainsString($expectedJsFooterLibrary, $renderedString);
         self::assertStringContainsString($expectedJsLibrary, $renderedString);
@@ -407,13 +406,9 @@ final class PageRendererTest extends FunctionalTestCase
         $this->file->ensureFilesExistInStorage('/test2.js');
         $this->file->ensureFilesExistInStorage('/test3.js');
         $this->file->ensureFilesExistInStorage('/test4.js');
-        $normalizedParams = $this->createMock(NormalizedParams::class);
-        $normalizedParams->method('getSitePath')->willReturn('/');
-        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest('https://www.example.com/'))
-            ->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_BE)
-            ->withAttribute('normalizedParams', $normalizedParams);
+        $request = $this->createRequest();
         $subject = $this->createPageRenderer();
-        $subject->setLanguage(new Locale());
+        $subject->setLanguage(new Locale(), $request);
 
         $subject->addJsFooterLibrary(
             'test',
@@ -457,7 +452,7 @@ final class PageRendererTest extends FunctionalTestCase
         );
         $expectedJsFooter = '<script src="/fileadmin/test4.js?da39a3ee5e6b4b0d3255bfef95601890afd80709" type="text/javascript" data-foo="JsFooterFile" data-bar="baz"></script>';
 
-        $renderedString = $subject->render();
+        $renderedString = $subject->render($request);
 
         self::assertStringContainsString($expectedJsFooterLibrary, $renderedString);
         self::assertStringContainsString($expectedJsLibrary, $renderedString);
@@ -468,14 +463,10 @@ final class PageRendererTest extends FunctionalTestCase
     #[Test]
     public function pageRendererRendersDataAttributeInCssTags(): void
     {
+        $request = $this->createRequest();
         $this->file->ensureFilesExistInStorage('/test.css');
-        $normalizedParams = $this->createMock(NormalizedParams::class);
-        $normalizedParams->method('getSitePath')->willReturn('/');
-        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest('https://www.example.com/'))
-            ->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_FE)
-            ->withAttribute('normalizedParams', $normalizedParams);
         $subject = $this->createPageRenderer();
-        $subject->setLanguage(new Locale());
+        $subject->setLanguage(new Locale(), $request);
 
         $subject->addCssFile(
             '/fileadmin/test.css',
@@ -495,7 +486,7 @@ final class PageRendererTest extends FunctionalTestCase
         );
         $expectedCssLibrary = '<link rel="stylesheet" href="/fileadmin/test.css?da39a3ee5e6b4b0d3255bfef95601890afd80709" media="all" data-foo="CssLibrary" data-bar="baz">';
 
-        $renderedString = $subject->render();
+        $renderedString = $subject->render($request);
 
         self::assertStringContainsString($expectedCssFile, $renderedString);
         self::assertStringContainsString($expectedCssLibrary, $renderedString);
@@ -504,23 +495,19 @@ final class PageRendererTest extends FunctionalTestCase
     #[Test]
     public function pageRendererRendersCDataBasedOnDocType(): void
     {
-        $normalizedParams = $this->createMock(NormalizedParams::class);
-        $normalizedParams->method('getSitePath')->willReturn('/');
-        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest('https://www.example.com/'))
-            ->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_FE)
-            ->withAttribute('normalizedParams', $normalizedParams);
+        $request = $this->createRequest();
         $subject = $this->createPageRenderer();
-        $subject->setLanguage(new Locale());
+        $subject->setLanguage(new Locale(), $request);
 
         $subject->addCssInlineBlock(StringUtility::getUniqueId(), 'body {margin:20px;}');
         $subject->addJsInlineCode(StringUtility::getUniqueId(), 'var x = "' . StringUtility::getUniqueId('jsInline-') . '"');
-        $renderedString = $subject->render();
+        $renderedString = $subject->render($request);
         self::assertStringNotContainsString('<![CDATA[', $renderedString);
 
         $subject->addCssInlineBlock(StringUtility::getUniqueId(), 'body {margin:20px;}');
         $subject->addJsInlineCode(StringUtility::getUniqueId(), 'var x = "' . StringUtility::getUniqueId('jsInline-') . '"');
-        $subject->setDocType(DocType::none);
-        $renderedString = $subject->render();
+        $subject->setDocType(DocType::none, $request);
+        $renderedString = $subject->render($request);
         self::assertMatchesRegularExpression('/<!\[CDATA\[(.|\n)*var\sx\s=(.|\n)*]]>/', $renderedString);
         self::assertMatchesRegularExpression('/<!\[CDATA\[(.|\n)*body\s{margin:20px;}(.|\n)*]]>/', $renderedString);
     }
@@ -529,8 +516,9 @@ final class PageRendererTest extends FunctionalTestCase
     #[Test]
     public function pageRendererResolvesInlineLanguageDomainLabels(): void
     {
+        $request = $this->createRequest();
         $subject = $this->createPageRenderer();
-        $subject->setLanguage(new Locale());
+        $subject->setLanguage(new Locale(), $request);
 
         $subject->addInlineLanguageDomain('core.common');
         $subject->addInlineLanguageDomain('core.modules.media');

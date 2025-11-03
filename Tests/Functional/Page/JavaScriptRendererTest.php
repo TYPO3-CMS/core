@@ -30,7 +30,7 @@ final class JavaScriptRendererTest extends FunctionalTestCase
     #[Test]
     public function textContentIsEncoded(): void
     {
-        $subject = JavaScriptRenderer::create('anything.js');
+        $subject = JavaScriptRenderer::create('URI:/anything.js');
         $subject->addJavaScriptModuleInstruction(
             JavaScriptModuleInstruction::create('@typo3/core/document-service.js')
                 ->invoke('test*/', 'arg*/')
@@ -39,7 +39,7 @@ final class JavaScriptRendererTest extends FunctionalTestCase
         self::assertSame(
             '<script>Object.assign(globalThis, {"section*\/":{"key*\/":"value*\/"}})</script>'
                 . PHP_EOL
-                . '<script src="anything.js" async="async">/* [{"type":"javaScriptModuleInstruction","payload":{"name":"@typo3\/core\/document-service.js","exportName":null,"flags":2,"items":[{"type":"invoke","method":"test*\/","args":["arg*\/"]}]}}] */</script>',
+                . '<script src="/anything.js" async="async">/* [{"type":"javaScriptModuleInstruction","payload":{"name":"@typo3\/core\/document-service.js","exportName":null,"flags":2,"items":[{"type":"invoke","method":"test*\/","args":["arg*\/"]}]}}] */</script>',
             trim($subject->render(null, '/'))
         );
     }

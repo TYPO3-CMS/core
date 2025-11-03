@@ -19,6 +19,8 @@ namespace TYPO3\CMS\Core\Tests\Unit\Page;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use TYPO3\CMS\Core\Core\SystemEnvironmentBuilder;
+use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Localization\Locale;
 use TYPO3\CMS\Core\Page\ImportMap;
 use TYPO3\CMS\Core\Page\ImportMapFactory;
@@ -125,8 +127,8 @@ final class PageRendererTest extends UnitTestCase
     #[Test]
     public function includeLanguageFileForInlineDoesNotAddToInlineLanguageLabelsIfFileCouldNotBeRead(): void
     {
-        $subject = $this->getAccessibleMock(PageRenderer::class, ['readLLfile'], [], '', false);
-        $subject->setLanguage(new Locale());
+        $subject = $this->getAccessibleMock(PageRenderer::class, ['readLLfile'], $this->getPageRendererConstructorArgs());
+        $subject->setLanguage(new Locale(), (new ServerRequest())->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_BE));
         $subject->method('readLLfile')->willReturn([]);
         $subject->_call('includeLanguageFileForInline', 'someLLFile.xml');
         self::assertEquals([], $subject->_get('inlineLanguageLabels'));
@@ -181,8 +183,8 @@ final class PageRendererTest extends UnitTestCase
     #[Test]
     public function includeLanguageFileForInlineAddsProcessesLabelsToInlineLanguageLabels(array $llFileContent, string $selectionPrefix, string $stripFromSelectionName, array $expectation): void
     {
-        $subject = $this->getAccessibleMock(PageRenderer::class, ['readLLfile'], [], '', false);
-        $subject->setLanguage(new Locale());
+        $subject = $this->getAccessibleMock(PageRenderer::class, ['readLLfile'], $this->getPageRendererConstructorArgs());
+        $subject->setLanguage(new Locale(), (new ServerRequest())->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_BE));
         $subject->method('readLLfile')->willReturn($llFileContent);
         $subject->_call('includeLanguageFileForInline', 'someLLFile.xml', $selectionPrefix, $stripFromSelectionName);
         self::assertEquals($expectation, $subject->_get('inlineLanguageLabels'));

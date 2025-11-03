@@ -19,13 +19,14 @@ namespace TYPO3\CMS\Core\Page;
 
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\ConsumableNonce;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Directive;
+use TYPO3\CMS\Core\SystemResource\Publishing\UriGenerationOptions;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
 
 class JavaScriptRenderer
 {
-    protected string $handlerUri;
+    protected string $handlerResource;
     protected JavaScriptItems $items;
     protected ImportMap $importMap;
     protected int $javaScriptModuleInstructionFlags = 0;
@@ -34,22 +35,18 @@ class JavaScriptRenderer
     /**
      * @internal Only to be used by PageRenderer
      */
-    public static function create(?string $uri = null): self
+    public static function create(?string $resourceIdentifier = null): self
     {
-        // @todo postpone creation of the URI to rendering, once a request is passed
-        //       and the new resource API can be used
-        $uri ??= PathUtility::getAbsoluteWebPath(
-            GeneralUtility::getFileAbsFileName('EXT:core/Resources/Public/JavaScript/java-script-item-handler.js')
-        );
-        return GeneralUtility::makeInstance(static::class, $uri);
+        $resourceIdentifier ??= 'EXT:core/Resources/Public/JavaScript/java-script-item-handler.js';
+        return GeneralUtility::makeInstance(static::class, $resourceIdentifier);
     }
 
     /**
      * @internal
      */
-    public function __construct(string $handlerUri)
+    public function __construct(string $handlerResource)
     {
-        $this->handlerUri = $handlerUri;
+        $this->handlerResource = $handlerResource;
         $this->items = new JavaScriptItems();
         $this->importMap = GeneralUtility::makeInstance(ImportMapFactory::class)->create();
     }
@@ -104,76 +101,73 @@ class JavaScriptRenderer
     /**
      * @throws \InvalidArgumentException when a JavaScript module could not be resolved (no src URL in import map)
      */
-    public function render(null|string|ConsumableNonce $nonce = null, ?string $sitePath = null): string
+    public function render(null|string|ConsumableNonce $nonce, string $uriPrefix): string
     {
         if ($this->isEmpty()) {
             return '';
         }
 
-        if ($sitePath !== null) {
-            $scriptTags = [];
+        $scriptTags = [];
 
-            $modules = [];
-            $dynamicInstructions = [];
-            foreach ($this->items->getJavascriptModuleInstructions() as $instruction) {
-                $moduleName = $instruction->getName();
-                $url = $this->importMap->resolveImport($moduleName);
-                if ($url === null) {
-                    throw new \InvalidArgumentException(
-                        sprintf(
-                            'JavaScript module "%s" could not be resolved. (Missing entry in Configuration/JavaScriptModules.php?).',
-                            $moduleName
-                        ),
-                        1728220800
-                    );
-                }
-                if (
-                    $instruction->getItems() !== [] ||
-                    ($instruction->getFlags() & JavaScriptModuleInstruction::FLAG_USE_TOP_WINDOW) !== 0
-                ) {
-                    $dynamicInstructions[] = [
-                        'type' => 'javaScriptModuleInstruction',
-                        'payload' => $instruction,
-                    ];
-                } else {
-                    $modules[$moduleName] = $url;
-                }
-            }
-
-            $globalAssignments = $this->mergeGlobalAssignments($this->items->getGlobalAssignments());
-            if ($globalAssignments !== []) {
-                $scriptTags[] = $this->createScriptElement(
-                    ['nonce' => $nonce instanceof ConsumableNonce ? $nonce->consumeInline(Directive::ScriptSrcElem) : (string)$nonce],
-                    sprintf('Object.assign(globalThis, %s)', $this->jsonEncode($globalAssignments))
+        $modules = [];
+        $dynamicInstructions = [];
+        foreach ($this->items->getJavascriptModuleInstructions() as $instruction) {
+            $moduleName = $instruction->getName();
+            $url = $this->importMap->resolveImport($moduleName, true, $uriPrefix);
+            if ($url === null) {
+                throw new \InvalidArgumentException(
+                    sprintf(
+                        'JavaScript module "%s" could not be resolved. (Missing entry in Configuration/JavaScriptModules.php?).',
+                        $moduleName
+                    ),
+                    1728220800
                 );
             }
-            $scriptTags = [
-                ...$scriptTags,
-                ...array_map(
-                    fn(string $url): string => $this->createScriptElement([
-                        'type' => 'module',
-                        'async' => 'async',
-                        'src' => $sitePath . $url,
-                    ]),
-                    $modules
-                ),
-            ];
-
-            if ($dynamicInstructions !== []) {
-                $scriptTags[] = $this->createItemHandlerElement($dynamicInstructions, true, $nonce);
+            if (
+                $instruction->getItems() !== [] ||
+                ($instruction->getFlags() & JavaScriptModuleInstruction::FLAG_USE_TOP_WINDOW) !== 0
+            ) {
+                $dynamicInstructions[] = [
+                    'type' => 'javaScriptModuleInstruction',
+                    'payload' => $instruction,
+                ];
+            } else {
+                $modules[$moduleName] = $url;
             }
-
-            return implode(PHP_EOL, $scriptTags);
         }
-        return $this->createItemHandlerElement($this->toArray(), true, $nonce);
+
+        $globalAssignments = $this->mergeGlobalAssignments($this->items->getGlobalAssignments());
+        if ($globalAssignments !== []) {
+            $scriptTags[] = $this->createScriptElement(
+                ['nonce' => $nonce instanceof ConsumableNonce ? $nonce->consumeInline(Directive::ScriptSrcElem) : (string)$nonce],
+                sprintf('Object.assign(globalThis, %s)', $this->jsonEncode($globalAssignments))
+            );
+        }
+        $scriptTags = [
+            ...$scriptTags,
+            ...array_map(
+                fn(string $url): string => $this->createScriptElement([
+                    'type' => 'module',
+                    'async' => 'async',
+                    'src' => $url,
+                ]),
+                $modules
+            ),
+        ];
+
+        if ($dynamicInstructions !== []) {
+            $scriptTags[] = $this->createItemHandlerElement($dynamicInstructions, true, $nonce, $uriPrefix);
+        }
+
+        return implode(PHP_EOL, $scriptTags);
     }
 
-    public function renderImportMap(string $sitePath, null|string|ConsumableNonce $nonce = null): string
+    public function renderImportMap(string $uriPrefix, null|string|ConsumableNonce $nonce = null): string
     {
         if (!$this->isEmpty() && ($this->instructionsWithItems > 0 || $this->items->getGlobalAssignments() !== [])) {
             $this->importMap->includeImportsFor('@typo3/core/java-script-item-handler.js');
         }
-        return $this->importMap->render($sitePath, $nonce);
+        return $this->importMap->render($uriPrefix, $nonce);
     }
 
     protected function isEmpty(): bool
@@ -181,13 +175,20 @@ class JavaScriptRenderer
         return $this->items->isEmpty();
     }
 
-    protected function createItemHandlerElement(array $payload, bool $async, null|string|ConsumableNonce $nonce = null): string
+    protected function createItemHandlerElement(array $payload, bool $async, null|string|ConsumableNonce $nonce, string $uriPrefix): string
     {
         // actual JSON payload is stored as comment in `script.textContent`
         // and consumed by java-script-item-handler.js
         return $this->createScriptElement(
             [
-                'src' => $this->handlerUri,
+                'src' => PathUtility::getSystemResourceUri(
+                    $this->handlerResource,
+                    null,
+                    new UriGenerationOptions(
+                        uriPrefix: $uriPrefix,
+                        cacheBusting: false,
+                    )
+                ),
                 'nonce' => (string)$nonce,
                 'async' => $async ? 'async' : '',
             ],
