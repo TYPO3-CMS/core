@@ -71,7 +71,6 @@ final class PackageTest extends UnitTestCase
         $packagePath = $this->testRoot . str_replace('\\', '/', $packageKey) . '/';
         mkdir($packagePath, 0777, true);
         file_put_contents($packagePath . 'composer.json', '{"name": "' . $packageKey . '", "type": "flow-test"}');
-        file_put_contents($packagePath . 'ext_emconf.php', '');
 
         $packageManagerMock = $this->createMock(PackageManager::class);
         $packageManagerMock->method('isPackageKeyValid')->willReturn(true);
@@ -108,7 +107,6 @@ final class PackageTest extends UnitTestCase
         $packagePath = $this->testRoot . 'Application/Vendor/Dummy/';
         mkdir($packagePath, 0700, true);
         file_put_contents($packagePath . 'composer.json', '{"name": "vendor/dummy", "type": "flow-test"}');
-        file_put_contents($packagePath . 'ext_emconf.php', '');
 
         $packageManagerMock = $this->createMock(PackageManager::class);
         $packageManagerMock->method('isPackageKeyValid')->willReturn(true);

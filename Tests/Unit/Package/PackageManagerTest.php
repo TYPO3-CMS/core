@@ -80,16 +80,23 @@ final class PackageManagerTest extends UnitTestCase
         $this->packageManager->_set('packageStatesPathAndFilename', $this->testRoot . 'Configuration/PackageStates.php');
     }
 
-    private function createPackage(string $packageKey): Package
+    private function createPackage(string $packageKey, array $additionalManifestData = []): Package
     {
         $packagePath = $this->testRoot . 'Packages/Application/' . $packageKey . '/';
         if (!is_dir($packagePath)) {
             mkdir($packagePath, 0770, true);
         }
-        file_put_contents($packagePath . 'ext_emconf.php', '<?php' . LF . '$EM_CONF[$_EXTKEY] = [];');
+        $composerManifest = [
+            'name' => $packageKey,
+            'extra' => [
+                'typo3/cms' => [
+                    'extension-key' => $packageKey,
+                ],
+            ],
+        ];
         file_put_contents(
             $packagePath . 'composer.json',
-            json_encode(['extra' => ['typo3/cms' => ['extension-key' => $packageKey]]], JSON_THROW_ON_ERROR)
+            json_encode(array_replace_recursive($composerManifest, $additionalManifestData), JSON_THROW_ON_ERROR)
         );
         $package = new Package($this->packageManager, $packageKey, $packagePath);
         $this->packageManager->registerPackage($package);
@@ -105,6 +112,44 @@ final class PackageManagerTest extends UnitTestCase
         $package = $this->packageManager->getPackage('TYPO3.MyPackage');
 
         self::assertInstanceOf(Package::class, $package, 'The result of getPackage() was no valid package object.');
+    }
+
+    public static function constraintsAreAddedToPackageMetaDataDataProvider(): \Generator
+    {
+        yield [
+            '^12.5',
+            '12.5.0 - 12.999.999',
+        ];
+        yield [
+            '^12.5 || ^13.4',
+            '12.5.0 - 13.999.999',
+        ];
+        yield [
+            '^12.5.34',
+            '12.5.34 - 12.999.999',
+        ];
+        yield [
+            '~12.5.34',
+            '12.5.34 - 12.5.999',
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('constraintsAreAddedToPackageMetaDataDataProvider')]
+    public function constraintsAreAddedToPackageMetaData(string $versionConstraints, string $expectedVersionRange): void
+    {
+        $this->createPackage(
+            'typo3/my-package',
+            [
+                'require' => [
+                    'typo3/cms-core' => $versionConstraints,
+                ],
+            ],
+        );
+        $package = $this->packageManager->getPackage('typo3/my-package');
+        [$constraint] = $package->getPackageMetaData()->getConstraintsByType(\TYPO3\CMS\Core\Package\MetaData::CONSTRAINT_TYPE_DEPENDS);
+
+        self::assertSame($expectedVersionRange, $constraint->getVersionRange());
     }
 
     #[Test]
@@ -162,7 +207,6 @@ final class PackageManagerTest extends UnitTestCase
 
             mkdir($packagePath, 0770, true);
             file_put_contents($packagePath . 'composer.json', '{"name": "' . $packageKey . '", "type": "typo3-cms-test", "extra": {"typo3/cms": {"extension-key": "' . $packageKey . '"}}}');
-            file_put_contents($packagePath . 'ext_emconf.php', '<?php' . LF . '$EM_CONF[$_EXTKEY] = [];');
         }
 
         $packageManager = $this->getAccessibleMock(PackageManager::class, null, [new DependencyOrderingService()]);
@@ -229,7 +273,6 @@ final class PackageManagerTest extends UnitTestCase
 
             mkdir($packagePath, 0770, true);
             file_put_contents($packagePath . 'composer.json', '{"name": "' . $packageKey . '", "type": "typo3-cms-test", "extra": {"typo3/cms": {"extension-key": "' . $packageKey . '"}}}');
-            file_put_contents($packagePath . 'ext_emconf.php', '<?php' . LF . '$EM_CONF[$_EXTKEY] = [];');
             $packagePaths[] = $packagePath;
         }
 

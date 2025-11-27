@@ -91,7 +91,7 @@ final class PackageStatesTest extends FunctionalTestCase
      * ordering service can only adjust order base on available information.
      *
      * The "sorting constraints" are a combination of static prioritized packages, the
-     * corresponding dependencies from `ext_emconf.php` and finally as a fall-back,
+     * corresponding dependencies from `composer.json` and finally as a fall-back,
      * an alphabetic order - which just ensures that the sequence stays the same.
      */
     #[Test]
@@ -99,31 +99,32 @@ final class PackageStatesTest extends FunctionalTestCase
     {
         $packageManager = $this->get(PackageManager::class);
         $activePackages = $packageManager->getActivePackages();
-        // @todo this list is still incorrect and requires consolidated `ext_emconf.php` constraints
         $expectedKeys = [
             'core',
-            'filelist',
-            'frontend',
-            'impexp',
-            'lowlevel',
-            'form',
             'scheduler',
             'extbase',
             'fluid',
-            'fluid_styled_content',
             'install',
+            'backend',
+            'frontend',
+            'adminpanel',
+            'dashboard',
+            'filelist',
+            'impexp',
+            'lowlevel',
+            'form',
+            'fluid_styled_content',
             'reports',
             'redirects',
+            'seo',
             'indexed_search',
             'linkvalidator',
+            'reactions',
             'recycler',
             'setup',
             'rte_ckeditor',
-            'dashboard',
-            'seo',
             'sys_note',
-            'adminpanel',
-            'backend',
+            'webhooks',
             'belog',
             'beuser',
             'extensionmanager',
@@ -131,10 +132,8 @@ final class PackageStatesTest extends FunctionalTestCase
             'filemetadata',
             'info',
             'opendocs',
-            'reactions',
             'tstemplate',
             'viewpage',
-            'webhooks',
             'workspaces',
         ];
 

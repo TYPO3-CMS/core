@@ -15,63 +15,92 @@
 
 namespace TYPO3\CMS\Core\Package\MetaData;
 
+use Composer\Semver\Constraint\ConstraintInterface;
+use Composer\Semver\Constraint\MatchAllConstraint;
+use Composer\Semver\VersionParser;
+
 /**
  * Package constraint meta model
  */
 class PackageConstraint
 {
-    /**
-     * One of depends, conflicts or suggests
-     * @var string
-     */
-    protected $constraintType;
+    private ?ConstraintInterface $constraint = null;
 
-    /**
-     * The constraint name or value
-     * @var string
-     */
-    protected $value;
+    public function __construct(
+        protected readonly string $constraintType,
+        protected readonly string $value,
+        protected ?string $minVersion = null,
+        protected ?string $maxVersion = null,
+        protected ?string $versionConstraints = null,
+    ) {}
 
-    /**
-     * Minimum version for the constraint
-     * @var string|null
-     */
-    protected $minVersion;
-
-    /**
-     * Maximum version for the constraint
-     * @var string|null
-     */
-    protected $maxVersion;
-
-    /**
-     * Meta data constraint constructor
-     *
-     * @param string $constraintType
-     * @param string $value
-     * @param string $minVersion
-     * @param string $maxVersion
-     */
-    public function __construct($constraintType, $value, $minVersion = null, $maxVersion = null)
+    private function initConstraint(): void
     {
-        $this->constraintType = $constraintType;
-        $this->value = $value;
-        $this->minVersion = $minVersion;
+        if ($this->constraint !== null) {
+            return;
+        }
+        if ($this->versionConstraints === null) {
+            if ($this->minVersion !== null || $this->maxVersion !== null) {
+                $this->versionConstraints = sprintf('%s - %s', $this->minVersion, $this->maxVersion);
+            } else {
+                $constraint = new MatchAllConstraint();
+            }
+        }
+        try {
+            $versionParser = new VersionParser();
+            $constraint ??= $versionParser->parseConstraints($this->versionConstraints);
+        } catch (\UnexpectedValueException) {
+            $constraint = new MatchAllConstraint();
+        }
+        $this->constraint = $constraint;
+        $this->calculateMinMaxVersion();
+
+    }
+
+    private function calculateMinMaxVersion(): void
+    {
+        $this->minVersion = $this->prettyVersion($this->constraint->getLowerBound()->getVersion());
+        $upperBound = $this->constraint->getUpperBound();
+        $maxVersion = $upperBound->getVersion();
+        if (!$this->constraint instanceof MatchAllConstraint && !$upperBound->isInclusive()) {
+            [$major, $minor, $patch] = explode('.', $upperBound->getVersion());
+            if ($minor === '0' && $patch === '0') {
+                $minor = $patch = '999';
+                $major = (int)$major - 1;
+            }
+            if ($patch === '0') {
+                $patch = '999';
+                $minor = (int)$minor - 1;
+            }
+            $maxVersion = sprintf('%s.%s.%s', $major, $minor, $patch);
+        }
         $this->maxVersion = $maxVersion;
+    }
+
+    private function prettyVersion(string $normalizedVersion): string
+    {
+        [$major, $minor, $patch] = explode('.', $normalizedVersion);
+        return sprintf('%s.%s.%s', $major, $minor, $patch);
     }
 
     /**
      * @return string The constraint name or value
      */
-    public function getValue()
+    public function getValue(): string
     {
         return $this->value;
+    }
+
+    public function getVersionRange(): string
+    {
+        $this->initConstraint();
+        return sprintf('%s - %s', $this->minVersion, $this->maxVersion);
     }
 
     /**
      * @return string The constraint type (depends, conflicts, suggests)
      */
-    public function getConstraintType()
+    public function getConstraintType(): string
     {
         return $this->constraintType;
     }

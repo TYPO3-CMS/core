@@ -2,6 +2,7 @@
 	"name": "typo3tests/test-label-alias",
 	"type": "typo3-cms-extension",
 	"description": "Test extension for translation domain alias functionality",
+	"version": "1.0.0",
 	"license": "GPL-2.0-or-later",
 	"require": {
 		"typo3/cms-core": "14.2.*@dev"
@@ -13,7 +14,10 @@
 	},
 	"extra": {
 		"typo3/cms": {
-			"extension-key": "test_label_alias"
+			"extension-key": "test_label_alias",
+			"Package": {
+				"providesPackages": []
+			}
 		}
 	}
 }

@@ -18,7 +18,6 @@ declare(strict_types=1);
 namespace TYPO3\CMS\Core\Composer;
 
 use Composer\Package\PackageInterface;
-use Composer\Repository\PlatformRepository;
 use Composer\Script\Event;
 use Composer\Util\Filesystem;
 use TYPO3\CMS\Composer\Plugin\Config;
@@ -40,8 +39,6 @@ use TYPO3\CMS\Core\Utility\PathUtility;
  * The builder is a subclass of PackageManager as it shares much of its functionality.
  * It evaluates the installed Composer packages for applicable TYPO3 extensions.
  * All Composer packages will be discovered, that have an extra.typo3/cms definition in their composer.json.
- * All ext_emconf.php files will be completely ignored in this context, which means all extensions
- * are required to have a composer.json file, which works out naturally with a Composer setup.
  *
  * @template packageMap of array<int, array{PackageInterface, string, non-empty-string}>
  * @template IOMessage of array{severity: 'title'|'info'|'warning', verbosity: int, message: string}
@@ -65,11 +62,7 @@ class PackageArtifactBuilder extends PackageManager implements InstallerScript
      */
     private $fileSystem;
 
-    /**
-     * Array of Composer package names (as array key) that are installed by Composer but have no relation to TYPO3 extension API
-     * @var array
-     */
-    private $availableComposerPackageKeys = [];
+    private array $installedTypo3Extensions = [];
 
     public function __construct()
     {
@@ -77,9 +70,9 @@ class PackageArtifactBuilder extends PackageManager implements InstallerScript
         parent::__construct(new DependencyOrderingService(), '', '');
     }
 
-    protected function isComposerDependency(string $packageName): bool
+    public function isComposerDependency(string $packageName): bool
     {
-        return PlatformRepository::isPlatformPackage($packageName) || ($this->availableComposerPackageKeys[$packageName] ?? false);
+        return !in_array($packageName, $this->installedTypo3Extensions, true);
     }
 
     /**
@@ -121,6 +114,11 @@ class PackageArtifactBuilder extends PackageManager implements InstallerScript
         return true;
     }
 
+    /**
+     * Make package paths of all packages relative
+     * so that it does not matter in which environment
+     * the "composer install" operation is performed
+     */
     protected function saveToPackageCache(): void
     {
         $basePath = $this->config->get('base-dir');
@@ -166,10 +164,9 @@ class PackageArtifactBuilder extends PackageManager implements InstallerScript
         $rootPackage = $composer->getPackage();
         $autoLoadGenerator = $composer->getAutoloadGenerator();
         $localRepo = $composer->getRepositoryManager()->getLocalRepository();
-        $usedExtensionKeys = [];
 
         return array_map(
-            function (array $packageAndPath) use ($rootPackage, &$usedExtensionKeys): array {
+            function (array $packageAndPath) use ($rootPackage): array {
                 [$composerPackage, $packagePath] = $packageAndPath;
                 $packageName = $composerPackage->getName();
                 $packagePath = GeneralUtility::fixWindowsFilePath($packagePath);
@@ -184,19 +181,18 @@ class PackageArtifactBuilder extends PackageManager implements InstallerScript
                     // In case we can not otherwise determine the extension key, we take the composer name
                     $extensionKey = $packageName;
                 }
-                if (isset($usedExtensionKeys[$extensionKey])) {
+                if (isset($this->installedTypo3Extensions[$extensionKey])) {
                     throw new \UnexpectedValueException(
                         sprintf(
                             'Package with the name "%s" registered extension key "%s", but this key was already set by package with the name "%s"',
                             $packageName,
                             $extensionKey,
-                            $usedExtensionKeys[$extensionKey]
+                            $this->installedTypo3Extensions[$extensionKey]
                         ),
                         1638880941
                     );
                 }
-                $usedExtensionKeys[$extensionKey] = $packageName;
-                unset($this->availableComposerPackageKeys[$packageName]);
+                $this->installedTypo3Extensions[$extensionKey] = $packageName;
                 $this->composerNameToPackageKeyMap[$packageName] = $extensionKey;
                 if ($composerPackage === $rootPackage) {
                     // The root package's path is the Composer base dir
@@ -207,15 +203,9 @@ class PackageArtifactBuilder extends PackageManager implements InstallerScript
             },
             array_filter(
                 $autoLoadGenerator->buildPackageMap($composer->getInstallationManager(), $rootPackage, $localRepo->getCanonicalPackages()),
-                function (array $packageAndPath): bool {
+                static function (array $packageAndPath): bool {
                     /** @var PackageInterface $composerPackage */
                     [$composerPackage] = $packageAndPath;
-                    // Filter all Composer packages without typo3/cms definition, but keep all
-                    // package names, to be able to ignore Composer only dependencies when ordering the packages
-                    $this->availableComposerPackageKeys[$composerPackage->getName()] = true;
-                    foreach ($composerPackage->getReplaces() as $link) {
-                        $this->availableComposerPackageKeys[$link->getTarget()] = true;
-                    }
                     return isset($composerPackage->getExtra()['typo3/cms']);
                 }
             )

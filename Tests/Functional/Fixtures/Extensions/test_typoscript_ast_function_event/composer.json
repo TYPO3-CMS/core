@@ -2,13 +2,17 @@
 	"name": "typo3tests/test-typoscript-ast-function-event",
 	"type": "typo3-cms-extension",
 	"description": "A test extension for core",
+	"version": "1.0.0",
 	"license": "GPL-2.0-or-later",
 	"require": {
 		"typo3/cms-core": "14.2.*@dev"
 	},
 	"extra": {
 		"typo3/cms": {
-			"extension-key": "test_typoscript_ast_function_event"
+			"extension-key": "test_typoscript_ast_function_event",
+			"Package": {
+				"providesPackages": []
+			}
 		}
 	},
 	"autoload": {

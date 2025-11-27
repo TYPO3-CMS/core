@@ -2,13 +2,17 @@
 	"name": "typo3tests/test-tcaoverride-b",
 	"type": "typo3-cms-extension",
 	"description": "This extension defines TCA configuration for testing purposes.",
+	"version": "1.0.0",
 	"license": "GPL-2.0-or-later",
 	"require": {
 		"typo3/cms-core": "14.2.*@dev"
 	},
 	"extra": {
 		"typo3/cms": {
-			"extension-key": "test_tcaoverride_b"
+			"extension-key": "test_tcaoverride_b",
+			"Package": {
+				"providesPackages": []
+			}
 		}
 	}
 }
