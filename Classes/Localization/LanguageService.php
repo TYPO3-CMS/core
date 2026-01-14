@@ -44,7 +44,7 @@ use TYPO3\CMS\Core\Utility\PathUtility;
  * ```
  */
 #[Exclude]
-class LanguageService
+class LanguageService implements TranslatorInterface
 {
     /**
      * This is set to the language which is currently running for the user
@@ -211,14 +211,67 @@ class LanguageService
     }
 
     /**
-     * This is different from sL() as it can also return null, and expects a domain (can be a file reference as well),
-     * NULL is returned then the "id" is wrong.
+     * Translate a label by its full reference string.
      *
-     * @internal for the time being, there might be $locale added a later point, as well as $quantity and $defaultValue
+     * Resolves TYPO3 label reference strings in the formats:
+     *
+     *     'LLL:EXT:core/Resources/Private/Language/locallang_core.xlf:labels.depth_0'
+     *     'EXT:core/Resources/Private/Language/locallang_core.xlf:labels.depth_0'
+     *     'core.messages:labels.depth_0'
+     *
+     * The LLL: prefix is optional and stripped before resolution.
+     *
+     * Unlike sL(), this method:
+     * - Returns null when the label reference cannot be resolved
+     * - Supports argument interpolation (sprintf-style or ICU MessageFormat)
+     * - Supports locale overrides per call
+     * - Supports a default value fallback
      */
-    public function translate(string $id, string $domain, array $arguments = []): ?string
+    public function label(string $reference, array $arguments = [], ?string $default = null, Locale|string|null $locale = null): string|\Stringable|null
     {
-        $cacheIdentifier = 'labels_' . (string)$this->locale . '_' . md5($domain . ':' . $id);
+        $reference = trim($reference);
+        if ($reference === '') {
+            return $default;
+        }
+
+        // Remove the LLL: prefix if present
+        if (str_starts_with($reference, 'LLL:')) {
+            $reference = substr($reference, 4);
+        }
+
+        $extensionPrefix = '';
+        if (PathUtility::isExtensionPath($reference)) {
+            $reference = substr($reference, 4);
+            $extensionPrefix = 'EXT:';
+        }
+
+        $parts = explode(':', $reference, 2);
+        if (!isset($parts[1])) {
+            return $default;
+        }
+
+        $domain = $extensionPrefix !== '' ? $extensionPrefix . $parts[0] : $parts[0];
+        return $this->translate($parts[1], $domain, $arguments, $default, $locale);
+    }
+
+    /**
+     * Translate a label by its identifier and domain.
+     *
+     * This is different from sL() as it can also return null, and expects a domain (can be a file reference as well).
+     * NULL is returned when the "id" is not found.
+     *
+     * @param string $id The label identifier/key
+     * @param string $domain The translation domain (file reference like 'EXT:core/Resources/Private/Language/locallang.xlf'
+     *                       or semantic domain like 'core.messages'). For ICU MessageFormat, suffix with '+intl-icu'.
+     * @param array $arguments Optional arguments for placeholder replacement. For sprintf-style messages,
+     *                         pass indexed values. For ICU messages, pass named values (e.g., ['count' => 5]).
+     * @param string|null $default Optional default value
+     * @param Locale|string|null $locale Optional locale override. If null, uses the service's configured locale.
+     * @return string|\Stringable|null The translated string, or null if the label was not found
+     */
+    public function translate(string $id, string $domain, array $arguments = [], ?string $default = null, Locale|string|null $locale = null): string|\Stringable|null
+    {
+        $cacheIdentifier = 'labels_' . $this->locale . '_' . md5($domain . ':' . $id);
         $result = $this->runtimeCache->get($cacheIdentifier);
         if (!is_string($result) && !is_null($result)) {
             // Only log deprecations when the label is written to the cache for the first time
@@ -250,7 +303,7 @@ class LanguageService
             $this->runtimeCache->set($cacheIdentifier, $result);
         }
         if ($result === '' || $result === null) {
-            return $result;
+            return $default !== null ? $default : $result;
         }
         if ($arguments !== []) {
             // Check if we should use ICU format (when using named arguments)

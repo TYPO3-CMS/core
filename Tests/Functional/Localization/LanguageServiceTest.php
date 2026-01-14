@@ -553,4 +553,158 @@ final class LanguageServiceTest extends FunctionalTestCase
         $result = $subject->translate('sprintf_style', self::LANGUAGE_FILE_ICU, [42]);
         self::assertEquals('Téléchargé 42 fois', $result);
     }
+
+    #[Test]
+    public function translateReturnsNullForMissingLabel(): void
+    {
+        $subject = $this->get(LanguageServiceFactory::class)->create('default');
+        self::assertNull($subject->translate('nonexistent_label', self::LANGUAGE_FILE));
+    }
+
+    #[Test]
+    public function translateReturnsDefaultForMissingLabel(): void
+    {
+        $subject = $this->get(LanguageServiceFactory::class)->create('default');
+        $result = $subject->translate('nonexistent_label', self::LANGUAGE_FILE, [], 'My fallback');
+        self::assertSame('My fallback', $result);
+    }
+
+    #[Test]
+    public function translateReturnsDefaultForEmptyLabel(): void
+    {
+        $subject = $this->get(LanguageServiceFactory::class)->create('default');
+        $result = $subject->translate('nonexistent_label', self::LANGUAGE_FILE, [], 'Fallback');
+        self::assertSame('Fallback', $result);
+    }
+
+    #[Test]
+    public function translateIgnoresDefaultWhenLabelExists(): void
+    {
+        $subject = $this->get(LanguageServiceFactory::class)->create('default');
+        $result = $subject->translate('label1', self::LANGUAGE_FILE, [], 'Fallback');
+        self::assertSame('This is label #1', $result);
+    }
+
+    #[Test]
+    public function translateWithDomainSyntax(): void
+    {
+        $subject = $this->get(LanguageServiceFactory::class)->create('default');
+        $result = $subject->translate('label1', 'test_localization.messages');
+        self::assertSame('This is label #1', $result);
+    }
+
+    #[Test]
+    public function translateWithDomainSyntaxAndArguments(): void
+    {
+        $subject = $this->get(LanguageServiceFactory::class)->create('default');
+        $result = $subject->translate('sprintf_style', 'test_localization.icu', [42]);
+        self::assertSame('Downloaded 42 times', $result);
+    }
+
+    #[Test]
+    public function translateWithDomainSyntaxInFrench(): void
+    {
+        $subject = $this->get(LanguageServiceFactory::class)->create('fr');
+        $result = $subject->translate('label1', 'test_localization.messages');
+        self::assertSame('Ceci est le libellé no. 1', $result);
+    }
+
+    #[Test]
+    public function labelResolvesLllExtReference(): void
+    {
+        $subject = $this->get(LanguageServiceFactory::class)->create('default');
+        $result = $subject->label('LLL:' . self::LANGUAGE_FILE . ':label1');
+        self::assertSame('This is label #1', $result);
+    }
+
+    #[Test]
+    public function labelResolvesExtReference(): void
+    {
+        $subject = $this->get(LanguageServiceFactory::class)->create('default');
+        $result = $subject->label(self::LANGUAGE_FILE . ':label1');
+        self::assertSame('This is label #1', $result);
+    }
+
+    #[Test]
+    public function labelResolvesDomainReference(): void
+    {
+        $subject = $this->get(LanguageServiceFactory::class)->create('default');
+        $result = $subject->label('test_localization.messages:label1');
+        self::assertSame('This is label #1', $result);
+    }
+
+    #[Test]
+    public function labelResolvesReferenceInFrench(): void
+    {
+        $subject = $this->get(LanguageServiceFactory::class)->create('fr');
+        $result = $subject->label('LLL:' . self::LANGUAGE_FILE . ':label1');
+        self::assertSame('Ceci est le libellé no. 1', $result);
+    }
+
+    #[Test]
+    public function labelReturnsNullForMissingLabel(): void
+    {
+        $subject = $this->get(LanguageServiceFactory::class)->create('default');
+        self::assertNull($subject->label('LLL:' . self::LANGUAGE_FILE . ':nonexistent'));
+    }
+
+    #[Test]
+    public function labelReturnsDefaultForMissingLabel(): void
+    {
+        $subject = $this->get(LanguageServiceFactory::class)->create('default');
+        $result = $subject->label('LLL:' . self::LANGUAGE_FILE . ':nonexistent', default: 'Fallback');
+        self::assertSame('Fallback', $result);
+    }
+
+    #[Test]
+    public function labelReturnsDefaultForEmptyReference(): void
+    {
+        $subject = $this->get(LanguageServiceFactory::class)->create('default');
+        self::assertSame('Fallback', $subject->label('', default: 'Fallback'));
+    }
+
+    #[Test]
+    public function labelReturnsDefaultForWhitespaceOnlyReference(): void
+    {
+        $subject = $this->get(LanguageServiceFactory::class)->create('default');
+        self::assertSame('Fallback', $subject->label('   ', default: 'Fallback'));
+    }
+
+    #[Test]
+    public function labelReturnsDefaultForReferenceWithoutColon(): void
+    {
+        $subject = $this->get(LanguageServiceFactory::class)->create('default');
+        self::assertSame('Fallback', $subject->label('no-colon-here', default: 'Fallback'));
+    }
+
+    #[Test]
+    public function labelReturnsNullForEmptyReferenceWithoutDefault(): void
+    {
+        $subject = $this->get(LanguageServiceFactory::class)->create('default');
+        self::assertNull($subject->label(''));
+    }
+
+    #[Test]
+    public function labelWithSprintfArguments(): void
+    {
+        $subject = $this->get(LanguageServiceFactory::class)->create('default');
+        $result = $subject->label('LLL:' . self::LANGUAGE_FILE_ICU . ':sprintf_style', [42]);
+        self::assertSame('Downloaded 42 times', $result);
+    }
+
+    #[Test]
+    public function labelWithIcuArguments(): void
+    {
+        $subject = $this->get(LanguageServiceFactory::class)->create('default');
+        $result = $subject->label('LLL:' . self::LANGUAGE_FILE_ICU . ':file_count', ['count' => 5]);
+        self::assertSame('5 files', $result);
+    }
+
+    #[Test]
+    public function labelWithDomainSyntaxAndArguments(): void
+    {
+        $subject = $this->get(LanguageServiceFactory::class)->create('default');
+        $result = $subject->label('test_localization.icu:sprintf_style', [42]);
+        self::assertSame('Downloaded 42 times', $result);
+    }
 }

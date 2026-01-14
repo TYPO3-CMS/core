@@ -53,4 +53,14 @@ readonly class LanguageServiceFactory
         // allowed language keys)
         return $this->create((string)$language->getLocale());
     }
+
+    /**
+     * Creates a LanguageService based on the current backend user's preferences.
+     *
+     * @internal don't use this in your own code, as we implicitly have a global dependency here.
+     */
+    public function createForBackendUser(): LanguageService
+    {
+        return $this->createFromUserPreferences($GLOBALS['BE_USER'] ?? null);
+    }
 }
