@@ -253,17 +253,43 @@ class LanguageService
             return $result;
         }
         if ($arguments !== []) {
+            // Check if we should use ICU format (when using named arguments)
+            if (!array_is_list($arguments)) {
+                return $this->formatIcuMessage($result, $arguments);
+            }
+
+            // Use sprintf format (positional arguments with numeric keys)
             try {
                 // We use vsprintf() over sprintf() here on purpose.
                 // The reason is that only sprintf() will return an error message if the number of arguments does not match
                 // the number of placeholders in the format string. Whereas, vsprintf would silently return nothing.
-                return vsprintf($result, array_values($arguments));
+                return vsprintf($result, $arguments);
             } catch (\ValueError $e) {
                 // @todo: we could at some point add a logger or a custom exception if needed, and hand over the $result differently
                 throw new \ValueError($result, 1765396511, $e);
             }
         }
         return $result;
+    }
+
+    /**
+     * Formats a message using ICU MessageFormat.
+     * This supports plural forms, select patterns, and other ICU MessageFormat features.
+     *
+     * Example message: "{count, plural, one {# file} other {# files}}"
+     * Example arguments: ['count' => 5]
+     * Result: "5 files"
+     */
+    private function formatIcuMessage(string $message, array $arguments): string
+    {
+        $locale = $this->locale?->posixFormatted() ?? 'en_US';
+        $formatted = \MessageFormatter::formatMessage($locale, $message, $arguments);
+        if ($formatted === false) {
+            // If formatting fails, return the original message
+            // This can happen with invalid ICU patterns
+            return $message;
+        }
+        return $formatted;
     }
 
     /**

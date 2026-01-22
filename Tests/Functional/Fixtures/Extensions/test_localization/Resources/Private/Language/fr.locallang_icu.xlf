@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file source-language="en" target-language="fr" datatype="plaintext" original="locallang_icu.xlf" date="2024-01-22T12:00:00Z" product-name="test_localization">
+    <body>
+      <trans-unit id="file_count">
+        <source>{count, plural, one {# file} other {# files}}</source>
+        <target>{count, plural, one {# fichier} other {# fichiers}}</target>
+      </trans-unit>
+      <trans-unit id="item_count">
+        <source>{count, plural, =0 {no items} one {# item} other {# items}}</source>
+        <target>{count, plural, =0 {aucun element} one {# element} other {# elements}}</target>
+      </trans-unit>
+      <trans-unit id="greeting">
+        <source>Hello {name}, you have {count, plural, one {# message} other {# messages}}.</source>
+        <target>Bonjour {name}, vous avez {count, plural, one {# message} other {# messages}}.</target>
+      </trans-unit>
+      <trans-unit id="simple_placeholder">
+        <source>Welcome, {name}!</source>
+        <target>Bienvenue, {name} !</target>
+      </trans-unit>
+      <trans-unit id="sprintf_style">
+        <source>Downloaded %d times</source>
+        <target>Téléchargé %d fois</target>
+      </trans-unit>
+      <trans-unit id="select_gender">
+        <source>{gender, select, male {He} female {She} other {They}} liked your post.</source>
+        <target>{gender, select, male {Il} female {Elle} other {a aimé}} a aime votre publication.</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

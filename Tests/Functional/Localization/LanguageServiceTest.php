@@ -31,6 +31,7 @@ final class LanguageServiceTest extends FunctionalTestCase
     private const LANGUAGE_FILE = 'EXT:test_localization/Resources/Private/Language/locallang.xlf';
     private const LANGUAGE_FILE__DEFAULT_IS_NON_ENGLISH_WITH_TARGETS = 'EXT:test_localization/Resources/Private/Language/default-with-targets/locallang.xlf';
     private const LANGUAGE_FILE_XLIFF_2 = 'EXT:test_localization/Resources/Private/Language/messages_2.xlf';
+    private const LANGUAGE_FILE_ICU = 'EXT:test_localization/Resources/Private/Language/locallang_icu.xlf';
     private const LANGUAGE_FILE_OVERRIDE = 'EXT:test_localization/Resources/Private/Language/locallang_override.xlf';
     private const LANGUAGE_FILE_OVERRIDE__DEFAULT_WITHOUT_TARGETS = 'EXT:test_localization/Resources/Private/Language/override-without-targets/locallang_override.xlf';
     private const LANGUAGE_FILE_OVERRIDE_DE = 'EXT:test_localization/Resources/Private/Language/de.locallang_override.xlf';
@@ -440,5 +441,116 @@ final class LanguageServiceTest extends FunctionalTestCase
         // the TranslationDomainMapper follows at this time.
         // The expectatation would then be "Test Message" (as defined in locallang.xlf)
         self::assertSame('test_translation_domain.messages:test.message', $subject->sL('test_translation_domain.messages:test.message'));
+    }
+
+    // ICU MessageFormat Tests
+    public static function icuMessageFormatProvider(): \Generator
+    {
+        yield 'Simple plural - one file (English)' => [
+            'locale' => 'default',
+            'label' => 'file_count',
+            'arguments' => ['count' => 1],
+            'expected' => '1 file',
+        ];
+        yield 'Simple plural - multiple files (English)' => [
+            'locale' => 'default',
+            'label' => 'file_count',
+            'arguments' => ['count' => 5],
+            'expected' => '5 files',
+        ];
+        yield 'Plural with zero - no items (English)' => [
+            'locale' => 'default',
+            'label' => 'item_count',
+            'arguments' => ['count' => 0],
+            'expected' => 'no items',
+        ];
+        yield 'Plural with zero - one item (English)' => [
+            'locale' => 'default',
+            'label' => 'item_count',
+            'arguments' => ['count' => 1],
+            'expected' => '1 item',
+        ];
+        yield 'Plural with zero - multiple items (English)' => [
+            'locale' => 'default',
+            'label' => 'item_count',
+            'arguments' => ['count' => 42],
+            'expected' => '42 items',
+        ];
+        yield 'Combined placeholder and plural (English)' => [
+            'locale' => 'default',
+            'label' => 'greeting',
+            'arguments' => ['name' => 'John', 'count' => 3],
+            'expected' => 'Hello John, you have 3 messages.',
+        ];
+        yield 'Simple placeholder (English)' => [
+            'locale' => 'default',
+            'label' => 'simple_placeholder',
+            'arguments' => ['name' => 'Alice'],
+            'expected' => 'Welcome, Alice!',
+        ];
+        yield 'Select gender - male (English)' => [
+            'locale' => 'default',
+            'label' => 'select_gender',
+            'arguments' => ['gender' => 'male'],
+            'expected' => 'He liked your post.',
+        ];
+        yield 'Select gender - female (English)' => [
+            'locale' => 'default',
+            'label' => 'select_gender',
+            'arguments' => ['gender' => 'female'],
+            'expected' => 'She liked your post.',
+        ];
+        yield 'Select gender - other (English)' => [
+            'locale' => 'default',
+            'label' => 'select_gender',
+            'arguments' => ['gender' => 'neutral'],
+            'expected' => 'They liked your post.',
+        ];
+        // French translations
+        yield 'Simple plural - one file (French)' => [
+            'locale' => 'fr',
+            'label' => 'file_count',
+            'arguments' => ['count' => 1],
+            'expected' => '1 fichier',
+        ];
+        yield 'Simple plural - multiple files (French)' => [
+            'locale' => 'fr',
+            'label' => 'file_count',
+            'arguments' => ['count' => 5],
+            'expected' => '5 fichiers',
+        ];
+        yield 'Combined placeholder and plural (French)' => [
+            'locale' => 'fr',
+            'label' => 'greeting',
+            'arguments' => ['name' => 'Jean', 'count' => 1],
+            'expected' => 'Bonjour Jean, vous avez 1 message.',
+        ];
+    }
+
+    #[DataProvider('icuMessageFormatProvider')]
+    #[Test]
+    public function icuMessageFormatWorksCorrectly(string $locale, string $label, array $arguments, string $expected): void
+    {
+        $subject = $this->get(LanguageServiceFactory::class)->create($locale);
+        $result = $subject->translate($label, self::LANGUAGE_FILE_ICU, $arguments);
+        self::assertEquals($expected, $result);
+    }
+
+    #[Test]
+    public function sprintfStyleArgumentsStillWork(): void
+    {
+        $subject = $this->get(LanguageServiceFactory::class)->create('default');
+        // Test with positional arguments (sprintf-style)
+        $result = $subject->translate('sprintf_style', self::LANGUAGE_FILE_ICU, [42]);
+        self::assertEquals('Downloaded 42 times', $result);
+    }
+
+    #[Test]
+    public function sprintfStyleArgumentsWorkInFrench(): void
+    {
+        $subject = $this->get(LanguageServiceFactory::class)->create('fr');
+        // Test with positional arguments (sprintf-style)
+        $result = $subject->translate('sprintf_style', self::LANGUAGE_FILE_ICU, [42]);
+        self::assertEquals('Téléchargé 42 fois', $result);
     }
 }
