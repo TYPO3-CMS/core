@@ -947,7 +947,13 @@ class DefaultTcaSchema
                         ) {
                             $items = $fieldTypeConfiguration['items'] ?? [];
                             $itemsContainsOnlyIntegers = true;
+                            $itemsContainNull = false;
                             foreach ($items as $item) {
+                                // Null values are valid for integer columns (stored as database NULL)
+                                if ($item['value'] === null) {
+                                    $itemsContainNull = true;
+                                    continue;
+                                }
                                 if (!MathUtility::canBeInterpretedAsInteger($item['value'])) {
                                     $itemsContainsOnlyIntegers = false;
                                     break;
@@ -955,6 +961,10 @@ class DefaultTcaSchema
                             }
                             $itemsAreAllPositive = true;
                             foreach ($items as $item) {
+                                // Skip null values for positive check (null is neither positive nor negative)
+                                if ($item['value'] === null) {
+                                    continue;
+                                }
                                 if ($item['value'] < 0) {
                                     $itemsAreAllPositive = false;
                                     break;
@@ -973,24 +983,28 @@ class DefaultTcaSchema
                                 ) {
                                     // If the item list is empty, or if it contains only int values, an int field is enough.
                                     // Also, the config must not be a 'fileFolderConfig' field which takes string values.
+                                    // When items contain a null value, allow NULL in the database column.
+                                    $defaultValue = $fieldType->getDefaultValue();
                                     $tables[$tableName]->addColumn(
                                         $this->quote($fieldName),
                                         Types::INTEGER,
                                         [
-                                            'notnull' => true,
-                                            'default' => (int)($fieldType->getDefaultValue() ?? 0),
+                                            'notnull' => !$itemsContainNull,
+                                            'default' => $itemsContainNull && $defaultValue === null ? null : (int)($defaultValue ?? 0),
                                             'unsigned' => $itemsAreAllPositive,
                                         ]
                                     );
                                     break;
                                 }
                                 // If int is no option, have a string field.
+                                // When items contain a null value, allow NULL in the database column.
+                                $defaultValue = $fieldType->getDefaultValue();
                                 $tables[$tableName]->addColumn(
                                     $this->quote($fieldName),
                                     Types::STRING,
                                     [
-                                        'notnull' => true,
-                                        'default' => (string)($fieldType->getDefaultValue() ?? ''),
+                                        'notnull' => !$itemsContainNull,
+                                        'default' => $itemsContainNull && $defaultValue === null ? null : (string)($defaultValue ?? ''),
                                         'length' => $dbFieldLength > 0 ? $dbFieldLength : 255,
                                     ]
                                 );
