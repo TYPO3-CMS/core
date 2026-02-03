@@ -86,6 +86,7 @@ The following existing commands already provide completion for their arguments:
 
 *   :shell:`redirects:cleanup`
 *   :shell:`redirects:checkintegrity`
+*   :shell:`styleguide:generate`
 
 Example
 -------
