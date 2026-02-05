@@ -159,19 +159,29 @@ class UserSettingsSchema
     }
 
     /**
-     * Resolves a TCA column configuration, handling inheritFromParent.
+     * Resolves inheritFromParent for a TCA column by merging with the
+     * parent be_users TCA column configuration. Returns TCA format
+     * (without legacy conversion).
+     *
+     * @internal
      */
-    private function resolveTcaColumn(string $fieldName, array $tcaConfig): array
+    public function resolveInheritFromParent(string $fieldName, array $tcaConfig): array
     {
-        // Handle inheritFromParent - merge with parent be_users TCA column
         if (!empty($tcaConfig['inheritFromParent'])) {
             $parentConfig = $GLOBALS['TCA']['be_users']['columns'][$fieldName] ?? [];
-            // Merge: tcaConfig overrides parentConfig (e.g., custom label)
             $tcaConfig = array_replace_recursive($parentConfig, $tcaConfig);
             unset($tcaConfig['inheritFromParent']);
         }
+        return $tcaConfig;
+    }
 
-        return $this->convertTcaToLegacyFormat($fieldName, $tcaConfig);
+    /**
+     * Resolves a TCA column configuration, handling inheritFromParent,
+     * and converts to legacy format.
+     */
+    private function resolveTcaColumn(string $fieldName, array $tcaConfig): array
+    {
+        return $this->convertTcaToLegacyFormat($fieldName, $this->resolveInheritFromParent($fieldName, $tcaConfig));
     }
 
     /**
