@@ -20,6 +20,7 @@ namespace TYPO3\CMS\Core\Tests\Acceptance\Application\Extensionmanager;
 use Codeception\Attribute\Env;
 use Codeception\Exception\MalformedLocatorException;
 use TYPO3\CMS\Core\Tests\Acceptance\Support\ApplicationTester;
+use TYPO3\CMS\Core\Tests\Acceptance\Support\Helper\ModalDialog;
 
 /**
  * Tests for the "Install list view" of the extension manager
@@ -57,7 +58,7 @@ final class InstalledExtensionsCest
     }
 
     #[Env('classic')]
-    public function checkUninstallingAndInstallingAnExtension(ApplicationTester $I): void
+    public function checkUninstallingAndInstallingAnExtension(ApplicationTester $I, ModalDialog $modalDialog): void
     {
         $I->amGoingTo('uninstall extension belog');
         $I->switchToMainFrame();
@@ -67,6 +68,10 @@ final class InstalledExtensionsCest
         $I->waitForElementVisible('//*[@id="typo3-extension-list"]/tbody/tr[@id="belog"]');
         $I->click('button[title="Deactivate"]', '//*[@id="typo3-extension-list"]/tbody/tr[@id="belog"]');
 
+        $modalDialog->canSeeDialog();
+        $I->click('.btn-warning', ModalDialog::$openedModalButtonContainerSelector);
+        $I->waitForElementNotVisible(ModalDialog::$openedModalSelector, 30);
+
         $I->switchToMainFrame();
         $I->waitForElementNotVisible('[data-modulemenu-identifier="system_log"]');
         $I->cantSeeElement('[data-modulemenu-identifier="system_log"]');
@@ -75,6 +80,10 @@ final class InstalledExtensionsCest
         $I->switchToContentFrame();
         $I->waitForElementVisible('//*[@id="typo3-extension-list"]/tbody/tr[@id="belog"]');
         $I->click('button[title="Activate"]', '//*[@id="typo3-extension-list"]/tbody/tr[@id="belog"]');
+
+        $modalDialog->canSeeDialog();
+        $I->click('.btn-warning', ModalDialog::$openedModalButtonContainerSelector);
+        $I->waitForElementNotVisible(ModalDialog::$openedModalSelector, 30);
 
         $I->switchToMainFrame();
         $I->waitForElementVisible('[data-modulemenu-identifier="system_log"]');
