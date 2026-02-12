@@ -17,6 +17,8 @@ declare(strict_types=1);
 
 namespace TYPO3\CMS\Core\Schema;
 
+use TYPO3\CMS\Core\Schema\Exception\UndefinedSchemaException;
+
 final readonly class SchemaCollection implements \ArrayAccess, \IteratorAggregate, \Countable
 {
     public function __construct(
@@ -62,6 +64,41 @@ final readonly class SchemaCollection implements \ArrayAccess, \IteratorAggregat
     public function getNames(): array
     {
         return array_values(array_map(fn($item): string => $item->getName(), $this->items));
+    }
+
+    /**
+     * Get a schema from the loaded TCA. Ensure to check for a schema with ->has() before
+     * calling ->get().
+     */
+    public function get(string $schemaName): TcaSchema
+    {
+        if (!$this->has($schemaName)) {
+            throw new UndefinedSchemaException('No TCA schema exists for the name "' . $schemaName . '".', 1661540376);
+        }
+        if (str_contains($schemaName, '.')) {
+            [$mainSchema, $subSchema] = explode('.', $schemaName, 2);
+            return $this->get($mainSchema)->getSubSchema($subSchema);
+        }
+        if (!$this->items[$schemaName] instanceof TcaSchema) {
+            throw new \RuntimeException('The schema "' . $schemaName . '" is not of type TcaSchema.', 1773758542);
+        }
+        return $this->items[$schemaName];
+    }
+
+    /**
+     * Checks if a schema exists, does not build the schema if not needed, thus it's very slim
+     * and only creates a schema if a sub-schema is requested.
+     */
+    public function has(string $schemaName): bool
+    {
+        if (str_contains($schemaName, '.')) {
+            [$mainSchema, $subSchema] = explode('.', $schemaName, 2);
+            if (!$this->has($mainSchema)) {
+                return false;
+            }
+            return $this->get($mainSchema)->hasSubSchema($subSchema);
+        }
+        return isset($this->items[$schemaName]);
     }
 
     public static function __set_state(array $state): self

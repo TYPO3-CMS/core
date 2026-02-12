@@ -24,6 +24,7 @@ use TYPO3\CMS\Core\Configuration\FlexForm\FlexFormTools;
 use TYPO3\CMS\Core\Schema\Exception\InvalidSchemaTypeException;
 use TYPO3\CMS\Core\Schema\FieldTypeFactory;
 use TYPO3\CMS\Core\Schema\RelationMapBuilder;
+use TYPO3\CMS\Core\Schema\TcaSchemaBuilder;
 use TYPO3\CMS\Core\Schema\TcaSchemaFactory;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
@@ -190,8 +191,10 @@ final class TcaSchemaFactoryTest extends UnitTestCase
         $cacheMock = $this->createMock(PhpFrontend::class);
         $cacheMock->method('has')->with(self::isString())->willReturn(false);
         $subject = new TcaSchemaFactory(
-            new RelationMapBuilder($this->createMock(FlexFormTools::class)),
-            new FieldTypeFactory(),
+            new TcaSchemaBuilder(
+                new RelationMapBuilder($this->createMock(FlexFormTools::class)),
+                new FieldTypeFactory(),
+            ),
             '',
             $cacheMock
         );
@@ -235,166 +238,15 @@ final class TcaSchemaFactoryTest extends UnitTestCase
         $cacheMock = $this->createMock(PhpFrontend::class);
         $cacheMock->method('has')->with(self::isString())->willReturn(false);
         $subject = new TcaSchemaFactory(
-            new RelationMapBuilder($this->createMock(FlexFormTools::class)),
-            new FieldTypeFactory(),
+            new TcaSchemaBuilder(
+                new RelationMapBuilder($this->createMock(FlexFormTools::class)),
+                new FieldTypeFactory(),
+            ),
             '',
             $cacheMock
         );
         $subject->load(['myschema' => $tableTca]);
         $subject->get('myschema')->getSubSchema('undefined');
-    }
-
-    public static function getFinalFieldConfigurationProcessesColumnOverridesDataProvider(): iterable
-    {
-        yield 'No overrides, no label' => [
-            'fieldName' => 'text',
-            'schemaConfiguration' => [
-                'columns' => [
-                    'header' => [
-                        'label' => 'Header',
-                        'config' => [
-                            'type' => 'input',
-                        ],
-                    ],
-                    'text' => [
-                        'label' => 'Text',
-                        'config' => [
-                            'type' => 'text',
-                        ],
-                    ],
-                ],
-            ],
-            'subSchemaConfiguration' => [],
-            'fieldLabel' => null,
-            'expected' => [
-                'label' => 'Text',
-                'config' => [
-                    'type' => 'text',
-                ],
-            ],
-        ];
-
-        yield 'No overrides, alternative label' => [
-            'fieldName' => 'text',
-            'schemaConfiguration' => [
-                'columns' => [
-                    'header' => [
-                        'label' => 'Header',
-                        'config' => [
-                            'type' => 'input',
-                        ],
-                    ],
-                    'text' => [
-                        'label' => 'Text',
-                        'config' => [
-                            'type' => 'text',
-                        ],
-                    ],
-                ],
-            ],
-            'subSchemaConfiguration' => [],
-            'fieldLabel' => 'Text alt',
-            'expected' => [
-                'label' => 'Text alt',
-                'config' => [
-                    'type' => 'text',
-                ],
-            ],
-        ];
-
-        yield 'overrides, no label' => [
-            'fieldName' => 'text',
-            'schemaConfiguration' => [
-                'columns' => [
-                    'header' => [
-                        'label' => 'Header',
-                        'config' => [
-                            'type' => 'input',
-                        ],
-                    ],
-                    'text' => [
-                        'label' => 'Text',
-                        'config' => [
-                            'type' => 'text',
-                        ],
-                    ],
-                ],
-            ],
-            'subSchemaConfiguration' => [
-                'columnsOverrides' => [
-                    'text' => [
-                        'config' => [
-                            'required' => true,
-                        ],
-                    ],
-                ],
-            ],
-            'fieldLabel' => null,
-            'expected' => [
-                'label' => 'Text',
-                'config' => [
-                    'type' => 'text',
-                    'required' => true,
-                ],
-            ],
-        ];
-
-        yield 'overrides, alternative label' => [
-            'fieldName' => 'text',
-            'schemaConfiguration' => [
-                'columns' => [
-                    'header' => [
-                        'label' => 'Header',
-                        'config' => [
-                            'type' => 'input',
-                        ],
-                    ],
-                    'text' => [
-                        'label' => 'Text',
-                        'config' => [
-                            'type' => 'text',
-                            'required' => false,
-                        ],
-                    ],
-                ],
-            ],
-            'subSchemaConfiguration' => [
-                'columnsOverrides' => [
-                    'text' => [
-                        'config' => [
-                            'required' => true,
-                        ],
-                    ],
-                ],
-            ],
-            'fieldLabel' => 'Alt label',
-            'expected' => [
-                'label' => 'Alt label',
-                'config' => [
-                    'type' => 'text',
-                    'required' => true,
-                ],
-            ],
-        ];
-    }
-
-    #[DataProvider('getFinalFieldConfigurationProcessesColumnOverridesDataProvider')]
-    #[Test]
-    public function getFinalFieldConfigurationProcessesColumnOverrides(string $fieldName, array $schemaConfiguration, array $subSchemaConfiguration, ?string $fieldLabel, array $expected): void
-    {
-        $cacheMock = $this->createMock(PhpFrontend::class);
-        $cacheMock->method('has')->with(self::isString())->willReturn(false);
-        $subject = $this->getAccessibleMock(
-            TcaSchemaFactory::class,
-            ['load'],
-            [
-                new RelationMapBuilder($this->createMock(FlexFormTools::class)),
-                new FieldTypeFactory(),
-                '', $cacheMock,
-            ]
-        );
-        $result = $subject->_call('getFinalFieldConfiguration', $fieldName, $schemaConfiguration, $subSchemaConfiguration, $fieldLabel);
-        self::assertSame($expected, $result);
     }
 
     #[Test]
@@ -403,8 +255,10 @@ final class TcaSchemaFactoryTest extends UnitTestCase
         $cacheMock = $this->createMock(PhpFrontend::class);
         $cacheMock->method('has')->with(self::isString())->willReturn(false);
         $subject = new TcaSchemaFactory(
-            new RelationMapBuilder($this->createMock(FlexFormTools::class)),
-            new FieldTypeFactory(),
+            new TcaSchemaBuilder(
+                new RelationMapBuilder($this->createMock(FlexFormTools::class)),
+                new FieldTypeFactory(),
+            ),
             '',
             $cacheMock
         );
@@ -441,8 +295,10 @@ final class TcaSchemaFactoryTest extends UnitTestCase
         $cacheMock = $this->createMock(PhpFrontend::class);
         $cacheMock->method('has')->with(self::isString())->willReturn(false);
         $subject = new TcaSchemaFactory(
-            new RelationMapBuilder($this->createMock(FlexFormTools::class)),
-            new FieldTypeFactory(),
+            new TcaSchemaBuilder(
+                new RelationMapBuilder($this->createMock(FlexFormTools::class)),
+                new FieldTypeFactory(),
+            ),
             '',
             $cacheMock
         );
@@ -486,8 +342,10 @@ final class TcaSchemaFactoryTest extends UnitTestCase
         $cacheMock = $this->createMock(PhpFrontend::class);
         $cacheMock->method('has')->with(self::isString())->willReturn(false);
         $subject = new TcaSchemaFactory(
-            new RelationMapBuilder($this->createMock(FlexFormTools::class)),
-            new FieldTypeFactory(),
+            new TcaSchemaBuilder(
+                new RelationMapBuilder($this->createMock(FlexFormTools::class)),
+                new FieldTypeFactory(),
+            ),
             '',
             $cacheMock
         );
@@ -570,8 +428,10 @@ final class TcaSchemaFactoryTest extends UnitTestCase
         $cacheMock = $this->createMock(PhpFrontend::class);
         $cacheMock->method('has')->with(self::isString())->willReturn(false);
         $subject = new TcaSchemaFactory(
-            new RelationMapBuilder($this->createMock(FlexFormTools::class)),
-            new FieldTypeFactory(),
+            new TcaSchemaBuilder(
+                new RelationMapBuilder($this->createMock(FlexFormTools::class)),
+                new FieldTypeFactory(),
+            ),
             '',
             $cacheMock
         );
@@ -594,8 +454,10 @@ final class TcaSchemaFactoryTest extends UnitTestCase
         $cacheMock = $this->createMock(PhpFrontend::class);
         $cacheMock->method('has')->with(self::isString())->willReturn(false);
         $subject = new TcaSchemaFactory(
-            new RelationMapBuilder($this->createMock(FlexFormTools::class)),
-            new FieldTypeFactory(),
+            new TcaSchemaBuilder(
+                new RelationMapBuilder($this->createMock(FlexFormTools::class)),
+                new FieldTypeFactory(),
+            ),
             '',
             $cacheMock
         );
@@ -622,8 +484,10 @@ final class TcaSchemaFactoryTest extends UnitTestCase
         $cacheMock = $this->createMock(PhpFrontend::class);
         $cacheMock->method('has')->with(self::isString())->willReturn(false);
         $subject = new TcaSchemaFactory(
-            new RelationMapBuilder($this->createMock(FlexFormTools::class)),
-            new FieldTypeFactory(),
+            new TcaSchemaBuilder(
+                new RelationMapBuilder($this->createMock(FlexFormTools::class)),
+                new FieldTypeFactory(),
+            ),
             '',
             $cacheMock
         );
@@ -650,8 +514,10 @@ final class TcaSchemaFactoryTest extends UnitTestCase
         $cacheMock = $this->createMock(PhpFrontend::class);
         $cacheMock->method('has')->with(self::isString())->willReturn(false);
         $subject = new TcaSchemaFactory(
-            new RelationMapBuilder($this->createMock(FlexFormTools::class)),
-            new FieldTypeFactory(),
+            new TcaSchemaBuilder(
+                new RelationMapBuilder($this->createMock(FlexFormTools::class)),
+                new FieldTypeFactory(),
+            ),
             '',
             $cacheMock
         );

@@ -29,8 +29,7 @@ use TYPO3\CMS\Core\Database\Schema\SchemaMigrator;
 use TYPO3\CMS\Core\Database\Schema\SqlReader;
 use TYPO3\CMS\Core\EventDispatcher\NoopEventDispatcher;
 use TYPO3\CMS\Core\Package\PackageManager;
-use TYPO3\CMS\Core\Schema\FieldTypeFactory;
-use TYPO3\CMS\Core\Schema\RelationMapBuilder;
+use TYPO3\CMS\Core\Schema\TcaSchemaBuilder;
 use TYPO3\CMS\Core\Schema\TcaSchemaFactory;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 use TYPO3\TestingFramework\Core\Testbase;
@@ -134,8 +133,7 @@ abstract class AbstractSchemaBasedTestCase extends FunctionalTestCase
     protected function createSchemaMigrator(): SchemaMigrator
     {
         $tcaSchemaFactory = new TcaSchemaFactory(
-            $this->get(RelationMapBuilder::class),
-            $this->get(FieldTypeFactory::class),
+            $this->get(TcaSchemaBuilder::class),
             $this->get('package-dependent-cache-identifier')->withPrefix('SchemaMigratorTest')->toString(),
             new NullFrontend('test-core')
         );
