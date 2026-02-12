@@ -99,6 +99,9 @@
       <trans-unit id="labels.noEditPermission">
         <source>Sorry, you didn't have proper permissions to perform this change.</source>
       </trans-unit>
+      <trans-unit id="labels.fieldsMissing.title">
+        <source>Alert</source>
+      </trans-unit>
       <trans-unit id="labels.fieldsMissing">
         <source>The fields marked with an exclamation mark are not yet correctly filled in. Please complete them properly.</source>
       </trans-unit>
