@@ -22,6 +22,13 @@ The ViewHelper is record-aware: it receives the full record and the field name, 
 renders the field according to the field's TCA configuration. This includes handling
 of both plain text and rich text fields.
 
+The input can be a :php:`\TYPO3\CMS\Core\Domain\RecordInterface`,
+:php:`\TYPO3\CMS\Frontend\Page\PageInformation`, or
+:php:`\TYPO3\CMS\Extbase\DomainObject\DomainObjectInterface`.
+
+This allows to input a Record, a ContentBlockData object, a PageInformation object, or an Extbase Model.
+PageInformation and Extbase Models are internally converted to a RecordInterface.
+
 Usage
 =====
 
@@ -47,6 +54,24 @@ without further configuration in the template.
     {f:render.text(record: record, field: 'title')}
     or
     {record -> f:render.text(field: 'title')}
+
+Usage with an Extbase model (property name differs from database field name):
+
+The :html:`field` argument always refers to the database/TCA column name of the
+underlying record, even if your Extbase model maps that column to a differently
+named property.
+
+Note that Extbase models need to contain all columns that should be rendered
+and the record type column (if configured in TCA) for this to work correctly.
+For example, an Extbase model that represents `tt_content` must map both `bodytext`
+and `ctype` to be able to use :html:`<f:render.text record="{contentModel}" field="bodytext" />`.
+
+..  code-block:: html
+    :caption: Blog/Templates/Post/Show.html
+
+    <f:render.text record="{post}" field="short_description" />
+
+    <!-- Example: Post->shortDescription maps to DB field "short_description"; use field="short_description" here. -->
 
 Previously, you needed to choose different processing for plain text and rich text
 fields; you can now use the same ViewHelper for all types of fields.
