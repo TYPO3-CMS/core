@@ -265,7 +265,7 @@ class PageRouter implements RouterInterface
         $pageRepository = GeneralUtility::makeInstance(PageRepository::class, $context);
 
         if ($route instanceof Page) {
-            $page = $route->toArray();
+            $page = $route->toArray(true);
         } elseif (is_array($route)
             // Check 3rd party input $route for basic requirements
             && isset($route['uid'], $route['sys_language_uid'], $route['l10n_parent'], $route['slug'])

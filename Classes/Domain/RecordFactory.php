@@ -184,9 +184,13 @@ readonly class RecordFactory
         );
         $event = new RecordCreationEvent($properties, $rawRecord, $systemProperties, $context, $recordIdentityMap, $schema);
         $this->eventDispatcher->dispatch($event);
-        return $event->isPropagationStopped()
-            ? $event->getRecord()
-            : new Record($event->getRawRecord(), $event->getProperties(), $event->getSystemProperties());
+        if ($event->isPropagationStopped()) {
+            return $event->getRecord();
+        }
+        if ($event->getRawRecord()->getMainType() === 'pages') {
+            return new Page($event->getRawRecord(), $event->getProperties(), $event->getSystemProperties());
+        }
+        return new Record($event->getRawRecord(), $event->getProperties(), $event->getSystemProperties());
     }
 
     protected function extractComputedProperties(array &$record): ComputedProperties

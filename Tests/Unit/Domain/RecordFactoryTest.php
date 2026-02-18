@@ -181,6 +181,6 @@ final class RecordFactoryTest extends UnitTestCase
         self::assertSame(111, $rawRecord2->getComputedProperties()->getVersionedUid());
         self::assertSame(112, $rawRecord2->getComputedProperties()->getLocalizedUid());
         self::assertSame(2, $rawRecord2->getComputedProperties()->getRequestedOverlayLanguageId());
-        self::assertSame(['uid' => 222], $rawRecord2->getComputedProperties()->getTranslationSource()->toArray());
+        self::assertSame(['uid' => 222, 'pid' => 0], $rawRecord2->getComputedProperties()->getTranslationSource()->toArray());
     }
 }
