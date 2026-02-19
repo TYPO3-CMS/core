@@ -433,9 +433,6 @@ class RootlineUtility
         if (!is_array($rootline)) {
             $rootline = $this->getRootlineRecords($parentPageId, $workspaceId);
         }
-        if (!is_array($rootline)) {
-            $rootline = [];
-        }
         $rootline[] = $page;
         $firstEntry = reset($rootline);
         // ensure valid rootline down to virtual tree root

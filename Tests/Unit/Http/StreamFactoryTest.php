@@ -148,6 +148,6 @@ final class StreamFactoryTest extends UnitTestCase
         $resource = xml_parser_create();
 
         $factory = new StreamFactory();
-        $factory->createStreamFromResource($resource);
+        $factory->createStreamFromResource($resource); // @phpstan-ignore argument.type (intentionally passing invalid resource type to test exception handling)
     }
 }

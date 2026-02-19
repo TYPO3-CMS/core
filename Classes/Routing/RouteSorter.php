@@ -29,12 +29,12 @@ class RouteSorter
     /**
      * @var Route[]
      */
-    protected $routes = [];
+    protected array $routes = [];
 
     /**
      * @var array<string, string>
      */
-    protected $originalParameters = [];
+    protected array $originalParameters = [];
 
     /**
      * @return Route[]
@@ -91,11 +91,11 @@ class RouteSorter
             return 0;
         }
         // $self is default route, sort $self after $other
-        if ($selfIsDefaultRoute && !$otherIsDefaultRoute) {
+        if ($selfIsDefaultRoute) {
             return $action;
         }
         // $other is default route, sort $self before $other
-        if (!$selfIsDefaultRoute && $otherIsDefaultRoute) {
+        if ($otherIsDefaultRoute) {
             return -$action;
         }
         return null;
@@ -108,10 +108,10 @@ class RouteSorter
         if ($selfVariableNames === [] && $otherVariableNames === []) {
             return 0;
         }
-        if ($selfVariableNames === [] && $otherVariableNames !== []) {
+        if ($selfVariableNames === []) {
             return $action;
         }
-        if ($selfVariableNames !== [] && $otherVariableNames === []) {
+        if ($otherVariableNames === []) {
             return -$action;
         }
         return null;
@@ -222,7 +222,7 @@ class RouteSorter
      */
     protected function getRouteParameters(Route $route): array
     {
-        // $originalParameters is used used as fallback
+        // $originalParameters is used as fallback
         // (custom enhancers should have processed and deflated parameters)
         return $route->getOption('deflatedParameters') ?? $this->originalParameters;
     }

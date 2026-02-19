@@ -95,7 +95,9 @@ readonly class TransportFactory
                 $streamOptions = (array)($mailSettings['transport_smtp_stream_options'] ?? []);
                 if (!empty($streamOptions)) {
                     $stream = $transport->getStream();
-                    $stream->setStreamOptions(array_merge_recursive($stream->getStreamOptions(), $streamOptions));
+                    if (method_exists($stream, 'setStreamOptions') && method_exists($stream, 'getStreamOptions')) {
+                        $stream->setStreamOptions(array_merge_recursive($stream->getStreamOptions(), $streamOptions));
+                    }
                 }
                 // Need authentication?
                 $username = (string)($mailSettings['transport_smtp_username'] ?? '');

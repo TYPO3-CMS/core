@@ -28,10 +28,6 @@ class EnvVariableProcessor implements PlaceholderProcessorInterface
         return str_contains($placeholder, '%env(');
     }
 
-    /**
-     * @param array|null $referenceArray
-     * @return mixed|string
-     */
     public function process(string $value, array $referenceArray)
     {
         $envVar = getenv($value);

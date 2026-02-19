@@ -360,7 +360,7 @@ class ArrayUtility
         if (empty($arrays)) {
             return $arrays;
         }
-        $sortResult = uasort($arrays, static function (array $a, array $b) use ($key, $ascending) {
+        uasort($arrays, static function (array $a, array $b) use ($key, $ascending) {
             if (!isset($a[$key], $b[$key])) {
                 throw new \RuntimeException('The specified sorting key "' . $key . '" is not available in the given array.', 1373727309);
             }
@@ -372,9 +372,6 @@ class ArrayUtility
             }
             return $ascending ? strcasecmp((string)$a[$key], (string)$b[$key]) : strcasecmp((string)$b[$key], (string)$a[$key]);
         });
-        if (!$sortResult) {
-            throw new \RuntimeException('The function uasort() failed for unknown reasons.', 1373727329);
-        }
         return $arrays;
     }
 
@@ -764,14 +761,12 @@ class ArrayUtility
             $getValueFunc = null;
         }
         // Do the filtering:
-        if (is_array($keepItems)) {
-            $keepItems = array_flip($keepItems);
-            foreach ($array as $key => $value) {
-                // Get the value to compare by using the callback function:
-                $keepValue = isset($getValueFunc) ? $getValueFunc($value) : $value;
-                if (!isset($keepItems[$keepValue])) {
-                    unset($array[$key]);
-                }
+        $keepItems = array_flip($keepItems);
+        foreach ($array as $key => $value) {
+            // Get the value to compare by using the callback function:
+            $keepValue = isset($getValueFunc) ? $getValueFunc($value) : $value;
+            if (!isset($keepItems[$keepValue])) {
+                unset($array[$key]);
             }
         }
 

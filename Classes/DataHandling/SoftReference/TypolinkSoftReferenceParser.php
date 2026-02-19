@@ -23,7 +23,7 @@ use TYPO3\CMS\Core\DataHandling\Event\AppendLinkHandlerElementsEvent;
 use TYPO3\CMS\Core\LinkHandling\Exception\UnknownLinkHandlerException;
 use TYPO3\CMS\Core\LinkHandling\LinkService;
 use TYPO3\CMS\Core\LinkHandling\TypoLinkCodecService;
-use TYPO3\CMS\Core\Resource\FileInterface;
+use TYPO3\CMS\Core\Resource\AbstractFile;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
 
@@ -127,7 +127,7 @@ class TypolinkSoftReferenceParser extends AbstractSoftReferenceParser
                 case LinkService::TYPE_UNKNOWN:
                     if (isset($linkData['file'])) {
                         $finalTagParts['type'] = LinkService::TYPE_FILE;
-                        $linkData['file'] = $linkData['file'] instanceof FileInterface ? $linkData['file']->getUid() : $linkData['file'];
+                        $linkData['file'] = $linkData['file'] instanceof AbstractFile ? $linkData['file']->getUid() : $linkData['file'];
                     } else {
                         $pU = parse_url($link_param);
                         parse_str($pU['query'] ?? '', $query);
@@ -200,7 +200,7 @@ class TypolinkSoftReferenceParser extends AbstractSoftReferenceParser
             case LinkService::TYPE_FILE:
                 // Process files referenced by their FAL uid
                 if (isset($tLP['file'])) {
-                    $fileId = $tLP['file'] instanceof FileInterface ? $tLP['file']->getUid() : $tLP['file'];
+                    $fileId = $tLP['file'] instanceof AbstractFile ? $tLP['file']->getUid() : $tLP['file'];
                     // Token and substitute value
                     $elements[$tokenID . ':' . $idx]['subst'] = [
                         'type' => 'db',

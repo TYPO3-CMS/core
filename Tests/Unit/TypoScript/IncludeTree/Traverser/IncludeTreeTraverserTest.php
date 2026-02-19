@@ -29,7 +29,6 @@ final class IncludeTreeTraverserTest extends UnitTestCase
     {
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionCode(1689244841);
-        // @phpstan-ignore-next-line
-        (new IncludeTreeTraverser())->traverse(new RootInclude(), [new \stdClass()]);
+        (new IncludeTreeTraverser())->traverse(new RootInclude(), [new \stdClass()]); // @phpstan-ignore argument.type (intentionally passing invalid visitor type to test exception handling)
     }
 }

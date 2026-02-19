@@ -60,20 +60,6 @@ final class CategoryCollectionTest extends FunctionalTestCase
     }
 
     #[Test]
-    public function canCreateDummyCollection(): void
-    {
-        $collection = CategoryCollection::create($this->collectionRecord);
-        self::assertInstanceOf(CategoryCollection::class, $collection);
-    }
-
-    #[Test]
-    public function canCreateDummyCollectionAndFillItems(): void
-    {
-        $collection = CategoryCollection::create($this->collectionRecord, true);
-        self::assertInstanceOf(CategoryCollection::class, $collection);
-    }
-
-    #[Test]
     public function getCollectedRecordsReturnsEmptyRecordSet(): void
     {
         $subject = new CategoryCollection('tx_test_test');

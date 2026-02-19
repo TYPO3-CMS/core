@@ -700,8 +700,7 @@ class DataHandler
                     if (method_exists($hookObj, 'processDatamap_preProcessFieldArray')) {
                         $hookObj->processDatamap_preProcessFieldArray($incomingFieldArray, $table, $id, $this);
                         // If a hook invalidated $incomingFieldArray, skip the record completely
-                        /** @phpstan-ignore-next-line */
-                        if (!is_array($incomingFieldArray)) {
+                        if (!is_array($incomingFieldArray)) { // @phpstan-ignore function.alreadyNarrowedType (hook may modify variable type by reference)
                             continue 2;
                         }
                     }
@@ -5200,7 +5199,7 @@ class DataHandler
         $value = implode(',', $dbAnalysisCurrent->getValueArray());
         $this->registerDBList[$table][$id][$field] = $value;
         // Remove child records (if synchronization requested it):
-        if (is_array($removeArray) && !empty($removeArray)) {
+        if ($removeArray !== []) {
             /** @var DataHandler $tce */
             $tce = GeneralUtility::makeInstance(self::class);
             $tce->enableLogging = $this->enableLogging;

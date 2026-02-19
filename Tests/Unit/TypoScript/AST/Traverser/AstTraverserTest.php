@@ -29,7 +29,6 @@ final class AstTraverserTest extends UnitTestCase
     {
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionCode(1689244842);
-        // @phpstan-ignore-next-line
-        (new AstTraverser())->traverse(new RootNode(), [new \stdClass()]);
+        (new AstTraverser())->traverse(new RootNode(), [new \stdClass()]); // @phpstan-ignore argument.type (intentionally passing invalid visitor type to test exception handling)
     }
 }

@@ -85,6 +85,10 @@ class IpAnonymizationUtility
         } else {
             return '';
         }
-        return inet_ntop($packedAddress & inet_pton($bitMask));
+        $packedBitMask = inet_pton($bitMask);
+        if ($packedBitMask === false) {
+            return '';
+        }
+        return inet_ntop($packedAddress & $packedBitMask);
     }
 }

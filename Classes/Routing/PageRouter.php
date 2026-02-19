@@ -99,14 +99,10 @@ class PageRouter implements RouterInterface
 
     /**
      * Finds a RouteResult based on the given request.
-     *
-     * @param RouteResultInterface|SiteRouteResult|null $previousResult
-     * @return RouteResultInterface|PageArguments
-     * @throws RouteNotFoundException
      */
-    public function matchRequest(ServerRequestInterface $request, ?RouteResultInterface $previousResult = null): RouteResultInterface
+    public function matchRequest(ServerRequestInterface $request, ?RouteResultInterface $previousResult = null): RouteResultInterface|PageArguments
     {
-        if ($previousResult === null) {
+        if (!$previousResult instanceof SiteRouteResult) {
             throw new RouteNotFoundException('No previous result given. Cannot find a page for an empty route part', 1555303496);
         }
 
@@ -147,7 +143,7 @@ class PageRouter implements RouterInterface
 
         /** @var RouteCollection<string, Route> $fullCollection */
         $fullCollection = new RouteCollection();
-        foreach ($pageCandidates ?? [] as $page) {
+        foreach ($pageCandidates as $page) {
             $pageIdForDefaultLanguage = (int)($page['l10n_parent'] ?: $page['uid']);
             $pagePath = $page['slug'];
             $pageCollection = new RouteCollection();
@@ -412,10 +408,8 @@ class PageRouter implements RouterInterface
      *
      * This is done recursively when multiple mount point parameter pairs
      *
-     * @param int $pageId
      * @param string $pagePath the original path of the page
      * @param array $mountPointPairs an array with MP pairs (like ['13-3', '4-2'] for recursive mount points)
-     * @param PageRepository $pageRepository
      */
     protected function resolveMountPointParameterIntoPageSlug(
         int $pageId,
@@ -585,18 +579,18 @@ class PageRouter implements RouterInterface
     protected function assertMaximumStaticMappableAmount(Route $route, array $variableNames = [])
     {
         // empty when only values of route defaults where used
-        if (empty($variableNames)) {
+        if ($variableNames === []) {
             return;
         }
         $mappers = $route->filterAspects(
             [StaticMappableAspectInterface::class, \Countable::class],
             $variableNames
         );
-        if (empty($mappers)) {
+        if ($mappers === []) {
             return;
         }
 
-        $multipliers = array_map('count', $mappers);
+        $multipliers = array_map(count(...), $mappers);
         $product = array_product($multipliers);
         if ($product > 10000) {
             throw new \OverflowException(
@@ -608,10 +602,8 @@ class PageRouter implements RouterInterface
 
     /**
      * Determine parameters that have been processed.
-     *
-     * @param array $results
      */
-    protected function filterProcessedParameters(Route $route, $results): array
+    protected function filterProcessedParameters(Route $route, array $results): array
     {
         return array_intersect_key(
             $results,

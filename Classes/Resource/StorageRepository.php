@@ -294,6 +294,7 @@ class StorageRepository
      * @param int<0, max>|string $uid The uid of the storage to instantiate.
      * @param array $recordData<string, mixed> The record row from database.
      * @param non-empty-string|null $fileIdentifier Identifier for a file. Used for auto-detection of a storage, but only if $uid === 0 (Local default storage) is used
+     * @param-out string $fileIdentifier
      */
     public function getStorageObject(int|string $uid, array $recordData = [], ?string &$fileIdentifier = null): ResourceStorage
     {
@@ -347,6 +348,7 @@ class StorageRepository
      * The file identifier is adapted accordingly to match the new storage's base path.
      * @internal absolutely do not call this method publicly, not even in TYPO3 core. It must only be used for legacy resource resolving
      * @param non-empty-string $localPath
+     * @param-out string $localPath
      * @return int<0, max>
      */
     public function findBestMatchingStorageByLocalPath(string &$localPath): int

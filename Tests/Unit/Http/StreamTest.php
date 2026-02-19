@@ -104,7 +104,7 @@ final class StreamTest extends UnitTestCase
     public function constructorRaisesExceptionWhenPassingInvalidStreamResource(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        new Stream(['  THIS WILL NOT WORK  ']);
+        new Stream(['  THIS WILL NOT WORK  ']); // @phpstan-ignore argument.type (intentionally passing invalid type to test exception handling)
     }
 
     #[Test]

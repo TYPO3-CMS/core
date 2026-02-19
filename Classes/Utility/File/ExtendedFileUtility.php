@@ -85,10 +85,8 @@ class ExtendedFileUtility extends BasicFileUtility
      * This array is self-explaining (look in the class below).
      * It grants access to the functions. This could be set from outside in order to enabled functions to users.
      * See also the function setActionPermissions() which takes input directly from the user-record
-     *
-     * @var array
      */
-    public $actionPerms = [
+    public array $actionPerms = [
         // File permissions
         'addFile' => false,
         'readFile' => false,
@@ -110,21 +108,16 @@ class ExtendedFileUtility extends BasicFileUtility
 
     /**
      * Will contain map between upload ID and the final filename
-     *
-     * @var array
      */
-    public $internalUploadMap = [];
+    public array $internalUploadMap = [];
 
     /**
      * Container for FlashMessages so they can be localized
      *
-     * @var array
+     * @var FlashMessage[]
      */
-    protected $flashMessages = [];
+    protected array $flashMessages = [];
 
-    /**
-     * @var array
-     */
     protected array $fileCmdMap = [];
 
     /**
@@ -132,12 +125,7 @@ class ExtendedFileUtility extends BasicFileUtility
      */
     protected array $uploadedFiles = [];
 
-    /**
-     * The File Factory
-     *
-     * @var \TYPO3\CMS\Core\Resource\ResourceFactory
-     */
-    protected $fileFactory;
+    protected ResourceFactory $fileFactory;
 
     /**
      * Get existingFilesConflictMode
@@ -192,7 +180,7 @@ class ExtendedFileUtility extends BasicFileUtility
     public function processData()
     {
         $result = [];
-        if (is_array($this->fileCmdMap)) {
+        if ($this->fileCmdMap !== []) {
             // Check if there were uploads expected, but no one made
             if ($this->fileCmdMap['upload'] ?? false) {
                 $uploads = $this->fileCmdMap['upload'];
@@ -280,9 +268,6 @@ class ExtendedFileUtility extends BasicFileUtility
      */
     protected function writeLog(int $action, int $severity, string $message, array $context = []): void
     {
-        if (!is_object($this->getBackendUser())) {
-            return;
-        }
         $this->getBackendUser()->writelog(SystemLogType::FILE, $action, $severity, null, $message, $context);
     }
 
@@ -457,8 +442,7 @@ class ExtendedFileUtility extends BasicFileUtility
                 }
             }
         } else {
-            /** @var Folder $fileObject */
-            if (!$this->folderHasFilesInUse($fileObject)) {
+            if ($fileObject instanceof Folder && !$this->folderHasFilesInUse($fileObject)) {
                 try {
                     $result = $fileObject->delete(true);
                     if ($result) {
@@ -611,7 +595,6 @@ class ExtendedFileUtility extends BasicFileUtility
     protected function func_copy($cmds)
     {
         $sourceFileObject = $this->getFileObject($cmds['data']);
-        /** @var Folder $targetFolderObject */
         $targetFolderObject = $this->getFileObject($cmds['target']);
         // Basic check
         if (!$targetFolderObject instanceof Folder) {

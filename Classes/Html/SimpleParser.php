@@ -30,25 +30,14 @@ namespace TYPO3\CMS\Core\Html;
  */
 class SimpleParser
 {
-    /**
-     * @var string|null
-     */
-    protected $attribute;
+    protected ?string $attribute = null;
 
     /**
      * @var SimpleNode[]
      */
-    protected $nodes = [];
-
-    /**
-     * @var int
-     */
-    protected $currentType = SimpleNode::TYPE_TEXT;
-
-    /**
-     * @var string
-     */
-    protected $currentData = '';
+    protected array $nodes = [];
+    protected int $currentType = SimpleNode::TYPE_TEXT;
+    protected string $currentData = '';
 
     public static function fromString(string $string): self
     {
@@ -115,7 +104,7 @@ class SimpleParser
     protected function process(string $string): void
     {
         $skip = 0;
-        $characters = str_split($string, 1);
+        $characters = str_split($string);
         foreach ($characters as $i => $character) {
             // skip tokens that already haven been processed
             if ($skip > 0 && $skip-- > 0) {

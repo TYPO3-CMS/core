@@ -43,6 +43,7 @@ class CsvStreamFilter extends \php_user_filter
      * @param resource $out
      * @param int $consumed
      * @param bool $closing
+     * @param-out int $consumed
      */
     public function filter($in, $out, &$consumed, $closing): int
     {
@@ -57,7 +58,7 @@ class CsvStreamFilter extends \php_user_filter
                 // remove line-feed added by `fputcsv` per default
                 $bucket->data = preg_replace('#\r?\n$#', '', $bucket->data);
             }
-            $consumed += $bucket->datalen;
+            $consumed += (int)$bucket->datalen;
             stream_bucket_append($out, $bucket);
         }
         return PSFS_PASS_ON;

@@ -109,7 +109,7 @@ class SimpleEnhancer extends AbstractEnhancer implements RoutingEnhancerInterfac
         $defaults = $variableProcessor->deflateKeys($this->configuration['defaults'] ?? [], null, $arguments);
         // only keep `defaults` that are actually used in `routePath`
         $variant->setDefaults($this->filterValuesByPathVariables($variant, $defaults));
-        $this->applyRouteAspects($variant, $this->aspects ?? []);
+        $this->applyRouteAspects($variant, $this->aspects);
         $this->applyRequirements($variant, $this->configuration['requirements'] ?? []);
         $this->applyStaticVariables($variant, $this->configuration['static'] ?? []);
         return $variant;

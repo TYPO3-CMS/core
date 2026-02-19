@@ -72,7 +72,7 @@ class TypolinkTagSoftReferenceParser extends AbstractSoftReferenceParser
                             'tokenID' => $token,
                             'tokenValue' => $linkDetails['pageuid'] ?? '',
                         ];
-                        if (isset($pageAndAnchorMatches[2]) && $pageAndAnchorMatches[2] !== '') {
+                        if (isset($pageAndAnchorMatches[2])) {
                             // Anchor is assumed to point to a content elements:
                             if (MathUtility::canBeInterpretedAsInteger($pageAndAnchorMatches[2])) {
                                 // Initialize a new entry because we have a new relation:

@@ -25,7 +25,7 @@ use TYPO3\CMS\Core\Settings\SettingsTypeInterface;
 #[AsTaggedItem(index: 'bool')]
 readonly class BoolType implements SettingsTypeInterface
 {
-    /** @var array<string, bool> */
+    /** @var array<int|string, bool> */
     private array $stringMap;
 
     public function __construct(
@@ -48,7 +48,7 @@ readonly class BoolType implements SettingsTypeInterface
         if (is_bool($value)) {
             return true;
         }
-        if (is_int($value) && ($value === 0 || $value === 1)) {
+        if (($value === 0 || $value === 1)) {
             return true;
         }
         if (is_string($value) && isset($this->stringMap[$value])) {

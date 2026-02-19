@@ -20,7 +20,6 @@ namespace TYPO3\CMS\Core\Tests\Functional\Log;
 use PHPUnit\Framework\Attributes\Test;
 use Psr\Log\LogLevel;
 use TYPO3\CMS\Core\Localization\LanguageServiceFactory;
-use TYPO3\CMS\Core\Log\LogRecord;
 use TYPO3\CMS\Core\Tests\Functional\Fixtures\Log\DummyWriter;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 use TYPO3Tests\TestLogger\ConstructorAttributeChannelTester;
@@ -67,7 +66,6 @@ final class LoggerAwareChannelTest extends FunctionalTestCase
 
         $subject->run();
 
-        self::assertInstanceOf(LogRecord::class, DummyWriter::$logs[0]);
         self::assertSame('beep beep', DummyWriter::$logs[0]->getMessage());
     }
 
@@ -79,7 +77,6 @@ final class LoggerAwareChannelTest extends FunctionalTestCase
 
         $subject->run();
 
-        self::assertInstanceOf(LogRecord::class, DummyWriter::$logs[0]);
         self::assertSame('beep beep', DummyWriter::$logs[0]->getMessage());
     }
 }

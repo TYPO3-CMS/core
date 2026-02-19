@@ -207,40 +207,39 @@ final readonly class TotpProvider implements MfaProviderInterface
             request: $request,
         );
         $view = $this->viewFactory->create($viewFactoryData);
-        if ($type === MfaViewType::SETUP) {
-            // Generate a new shared secret, generate the otpauth URL and create a qr-code for improved usability.
-            $userData = $propertyManager->getUser()->user ?? [];
-            $secret = Totp::generateEncodedSecret([(string)($userData['uid'] ?? ''), (string)($userData['username'] ?? '')]);
-            $totpInstance = GeneralUtility::makeInstance(Totp::class, $secret);
-            $totpAuthUrl = $totpInstance->getTotpAuthUrl(
-                (string)($GLOBALS['TYPO3_CONF_VARS']['SYS']['sitename'] ?? 'TYPO3'),
-                (string)($userData['email'] ?? '') ?: (string)($userData['username'] ?? '')
-            );
-            $view->assignMultiple([
-                'secret' => $secret,
-                'totpAuthUrl' => $totpAuthUrl,
-                'qrCode' => $this->getSvgQrCode($totpAuthUrl),
-                // Generate hmac of the secret to prevent it from being changed in the setup from
-                'checksum' => $this->hashService->hmac($secret, 'totp-setup', HashAlgo::SHA3_256),
-                'providerIdentifier' => $propertyManager->getIdentifier(),
-            ]);
-            return new HtmlResponse($view->render('Authentication/MfaProvider/Totp/Setup'));
-        }
-        if ($type === MfaViewType::EDIT) {
-            $view->assignMultiple([
-                'name' => $propertyManager->getProperty('name'),
-                'lastUsed' => $this->getDateTime($propertyManager->getProperty('lastUsed', 0)),
-                'updated' => $this->getDateTime($propertyManager->getProperty('updated', 0)),
-                'providerIdentifier' => $propertyManager->getIdentifier(),
-            ]);
-            return new HtmlResponse($view->render('Authentication/MfaProvider/Totp/Edit'));
-        }
-        if ($type === MfaViewType::AUTH) {
-            $view->assignMultiple([
-                'isLocked' => $this->isLocked($propertyManager),
-                'providerIdentifier' => $propertyManager->getIdentifier(),
-            ]);
-            return new HtmlResponse($view->render('Authentication/MfaProvider/Totp/Auth'));
+        switch ($type) {
+            case MfaViewType::SETUP:
+                // Generate a new shared secret, generate the otpauth URL and create a qr-code for improved usability.
+                $userData = $propertyManager->getUser()->user ?? [];
+                $secret = Totp::generateEncodedSecret([(string)($userData['uid'] ?? ''), (string)($userData['username'] ?? '')]);
+                $totpInstance = GeneralUtility::makeInstance(Totp::class, $secret);
+                $totpAuthUrl = $totpInstance->getTotpAuthUrl(
+                    (string)($GLOBALS['TYPO3_CONF_VARS']['SYS']['sitename'] ?? 'TYPO3'),
+                    (string)($userData['email'] ?? '') ?: (string)($userData['username'] ?? '')
+                );
+                $view->assignMultiple([
+                    'secret' => $secret,
+                    'totpAuthUrl' => $totpAuthUrl,
+                    'qrCode' => $this->getSvgQrCode($totpAuthUrl),
+                    // Generate hmac of the secret to prevent it from being changed in the setup from
+                    'checksum' => $this->hashService->hmac($secret, 'totp-setup', HashAlgo::SHA3_256),
+                    'providerIdentifier' => $propertyManager->getIdentifier(),
+                ]);
+                return new HtmlResponse($view->render('Authentication/MfaProvider/Totp/Setup'));
+            case MfaViewType::EDIT:
+                $view->assignMultiple([
+                    'name' => $propertyManager->getProperty('name'),
+                    'lastUsed' => $this->getDateTime($propertyManager->getProperty('lastUsed', 0)),
+                    'updated' => $this->getDateTime($propertyManager->getProperty('updated', 0)),
+                    'providerIdentifier' => $propertyManager->getIdentifier(),
+                ]);
+                return new HtmlResponse($view->render('Authentication/MfaProvider/Totp/Edit'));
+            default: // MfaViewType::AUTH
+                $view->assignMultiple([
+                    'isLocked' => $this->isLocked($propertyManager),
+                    'providerIdentifier' => $propertyManager->getIdentifier(),
+                ]);
+                return new HtmlResponse($view->render('Authentication/MfaProvider/Totp/Auth'));
         }
     }
 

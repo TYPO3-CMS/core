@@ -34,10 +34,7 @@ use TYPO3\CMS\Core\Utility\MathUtility;
  */
 class LegacyLinkNotationConverter
 {
-    /**
-     * @var ResourceFactory
-     */
-    protected $resourceFactory;
+    protected ?ResourceFactory $resourceFactory = null;
 
     /**
      * Part of the typolink construction functionality, called by typoLink()

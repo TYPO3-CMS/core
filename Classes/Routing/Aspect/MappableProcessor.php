@@ -79,6 +79,8 @@ class MappableProcessor
         if (empty($attributes)) {
             return [];
         }
-        return $route->filterAspects([$type], array_keys($attributes));
+        /** @var MappableAspectInterface[] $result */
+        $result = $route->filterAspects([$type], array_keys($attributes));
+        return $result;
     }
 }

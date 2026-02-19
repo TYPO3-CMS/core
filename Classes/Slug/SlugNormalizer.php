@@ -53,11 +53,11 @@ final readonly class SlugNormalizer
         $value = $this->charsetConverter->utf8_char_mapping($value);
 
         // Get rid of all invalid characters, but allow slashes
-        $value = (string)preg_replace('/[^\p{L}\p{M}0-9\/' . preg_quote($fallbackCharacter) . ']/u', '', $value);
+        $value = (string)preg_replace('/[^\p{L}\p{M}0-9\/' . preg_quote($fallbackCharacter, '/') . ']/u', '', $value);
 
         // Convert multiple fallback characters to a single one
         if ($fallbackCharacter !== '') {
-            $value = (string)preg_replace('/' . preg_quote($fallbackCharacter) . '{2,}/', $fallbackCharacter, $value);
+            $value = (string)preg_replace('/' . preg_quote($fallbackCharacter, '/') . '{2,}/', $fallbackCharacter, $value);
         }
 
         // Ensure slug is lower cased after all replacement was done

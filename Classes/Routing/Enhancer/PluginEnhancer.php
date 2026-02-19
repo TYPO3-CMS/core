@@ -122,7 +122,7 @@ class PluginEnhancer extends AbstractEnhancer implements RoutingEnhancerInterfac
         $defaults = $variableProcessor->deflateKeys($this->configuration['defaults'] ?? [], $this->namespace, $arguments);
         // only keep `defaults` that are actually used in `routePath`
         $variant->setDefaults($this->filterValuesByPathVariables($variant, $defaults));
-        $this->applyRouteAspects($variant, $this->aspects ?? [], $this->namespace);
+        $this->applyRouteAspects($variant, $this->aspects, $this->namespace);
         $this->applyRequirements($variant, $this->configuration['requirements'] ?? [], $this->namespace);
         $this->applyStaticVariables($variant, $this->configuration['static'] ?? [], $this->namespace);
         return $variant;

@@ -223,7 +223,7 @@ class PageArguments implements RouteResultInterface
     }
 
     /**
-     * @return string|array<string, string|array>|null
+     * @return int|string|array<string, string|array>|null
      */
     public function offsetGet(mixed $offset): mixed
     {

@@ -96,7 +96,6 @@ class File extends AbstractFile implements PublicResourceInterface, SystemResour
      * @param string|null $targetFileName an optional destination fileName
      *
      * @return self The new (copied) file.
-     * @throws \RuntimeException
      */
     public function copyTo(Folder $targetFolder, ?string $targetFileName = null, DuplicationBehavior $conflictMode = DuplicationBehavior::RENAME): FileInterface
     {

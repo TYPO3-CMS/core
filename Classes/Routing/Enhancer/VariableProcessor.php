@@ -66,8 +66,8 @@ class VariableProcessor
             // Symfony Route Compiler requires the first literal to be non-integer
             if ($hash[0] === (string)(int)$hash[0]) {
                 $hash[0] = str_replace(
-                    range('0', '9'),
-                    range('o', 'x'),
+                    ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+                    ['o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x'],
                     $hash[0]
                 );
             }

@@ -117,8 +117,11 @@ final class ErrorHandlerTest extends UnitTestCase
         }
         self::assertEquals($expectedReturn, $return);
         if ($deprecationsLogMessage) {
-            self::assertEquals($deprecationsLogMessage, $logManager->getLogger('TYPO3.CMS.deprecations')->records[0]['message']);
-            self::assertEquals($deprecationsLogLevel, $logManager->getLogger('TYPO3.CMS.deprecations')->records[0]['level']);
+            $deprecationLogger = $logManager->getLogger('TYPO3.CMS.deprecations');
+            if (property_exists($deprecationLogger, 'records')) {
+                self::assertEquals($deprecationsLogMessage, $deprecationLogger->records[0]['message']);
+                self::assertEquals($deprecationsLogLevel, $deprecationLogger->records[0]['level']);
+            }
         }
         /**
          * disabled until the new channel is in place

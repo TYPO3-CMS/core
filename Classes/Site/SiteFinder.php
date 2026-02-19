@@ -62,7 +62,7 @@ readonly class SiteFinder
     {
         $mapping = $this->getRootPageIdToIdentifierMapping();
         $sites = $this->siteConfiguration->getAllExistingSites();
-        if (isset($mapping[$rootPageId]) && $sites[$mapping[$rootPageId]] instanceof Site) {
+        if (isset($mapping[$rootPageId], $sites[$mapping[$rootPageId]])) {
             return $sites[$mapping[$rootPageId]];
         }
         throw new SiteNotFoundException('No site found for root page id ' . $rootPageId, 1521668882);
@@ -107,7 +107,7 @@ readonly class SiteFinder
         $sites = $this->siteConfiguration->getAllExistingSites();
         $mapping = $this->getRootPageIdToIdentifierMapping();
         foreach ($rootLine as $pageInRootLine) {
-            if (isset($mapping[(int)$pageInRootLine['uid']]) && $sites[$mapping[(int)$pageInRootLine['uid']]] instanceof Site) {
+            if (isset($mapping[(int)$pageInRootLine['uid']], $sites[$mapping[(int)$pageInRootLine['uid']]])) {
                 return $sites[$mapping[(int)$pageInRootLine['uid']]];
             }
         }

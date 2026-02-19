@@ -88,7 +88,8 @@ final class SelectItemCollection implements CollectionInterface, EditableCollect
     }
 
     /**
-     * @param SelectItem $data
+     * @param mixed $data
+     * @todo replace this with a strict "SelectItem" type in TYPO3 v15.0
      */
     public function add($data): void
     {
@@ -110,7 +111,8 @@ final class SelectItemCollection implements CollectionInterface, EditableCollect
     }
 
     /**
-     * @param SelectItem $data
+     * @param mixed $data
+     * @todo replace this with a strict "SelectItem" type in TYPO3 v15.0
      */
     public function remove($data): void
     {

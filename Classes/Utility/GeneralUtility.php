@@ -3105,9 +3105,13 @@ class GeneralUtility
             // provide information about requested service to service object
             $info = array_merge($info, $requestInfo);
 
-            /** @var class-string<AbstractAuthenticationService> $className */
+            /** @var class-string<AbstractAuthenticationService>|null $className */
             $className = $info['className'];
-            /** @var AbstractAuthenticationService $obj */
+            /* @todo Do a (minor) breaking change in TYPO3 v15.0 and type-enforce this to only AbstractAuthenticationService objects.
+                     (There are public extensions out there carrying around makeInstanceService() as a pre-dependency-injection methodology,
+                     which we need to cut)
+            */
+            /** @var AbstractAuthenticationService|null $obj */
             $obj = self::makeInstance($className);
             if (is_object($obj)) {
                 if (!is_callable([$obj, 'init'])) {

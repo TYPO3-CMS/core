@@ -123,15 +123,11 @@ class SyslogWriter extends AbstractWriter
     /**
      * Writes the log record to syslog
      *
-     * @param LogRecord $record Log record
      * @return \TYPO3\CMS\Core\Log\Writer\WriterInterface
-     * @throws \RuntimeException
      */
     public function writeLog(LogRecord $record)
     {
-        if (syslog(LogLevel::normalizeLevel($record->getLevel()), $this->getMessageForSyslog($record)) === false) {
-            throw new \RuntimeException('Could not write log record to syslog', 1345036337);
-        }
+        syslog(LogLevel::normalizeLevel($record->getLevel()), $this->getMessageForSyslog($record));
         return $this;
     }
 }

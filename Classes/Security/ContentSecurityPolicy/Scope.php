@@ -53,8 +53,7 @@ final class Scope implements \Stringable, \JsonSerializable
      */
     public static function frontendSite(?SiteInterface $site): self
     {
-        // PHPStan fails, see https://github.com/phpstan/phpstan/issues/8464
-        // @phpstan-ignore-next-line
+        // @phpstan-ignore function.impossibleType (PHPStan limitation, see https://github.com/phpstan/phpstan/issues/8464)
         if (!$site instanceof Site || is_subclass_of($site, Site::class)) {
             return self::frontend();
         }
