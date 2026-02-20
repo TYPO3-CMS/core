@@ -360,6 +360,7 @@ class ImportMap
                 $virtualName = substr($url, 8);
                 $resolved = $this->dispatchResolveVirtualJavaScriptImportEvent($virtualName);
                 if ($resolved === null) {
+                    unset($importMap['imports'][$specifier]);
                     continue;
                 }
             }
