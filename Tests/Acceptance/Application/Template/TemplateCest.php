@@ -251,7 +251,7 @@ final class TemplateCest
         $I->amGoingTo('type "styles" into the search field and submit.');
         $I->fillField('#searchValue', 'styles');
         $I->waitForText('Setup');
-        $I->waitForText('1 search match(es)');
+        $I->waitForText('one match');
         $I->seeInSource('<span data-markjs="true" class="text-highlight">styles</span>');
     }
 }
