@@ -67,6 +67,7 @@ final class ErrorHandlerTest extends UnitTestCase
         };
     }
 
+    // @phpstan-ignore attributes.forbidden.methodScope (to avoid inconsistencies when testing our custom error handler)
     #[WithoutErrorHandler]
     #[Test]
     #[DataProvider('errorTests')]
