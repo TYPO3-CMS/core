@@ -19,6 +19,7 @@ return [
         // legacy, has ben renamed 'flatpickr/dist/l10n'
         'flatpickr/locales' => 'EXT:core/Resources/Public/JavaScript/Contrib/flatpickr/dist/l10n.js',
         'interactjs' => 'EXT:core/Resources/Public/JavaScript/Contrib/interactjs.js',
+        'intl-messageformat' => 'EXT:core/Resources/Public/JavaScript/Contrib/intl-messageformat.js',
         'jquery' => 'EXT:core/Resources/Public/JavaScript/Contrib/jquery.js',
         'jquery/' => 'EXT:core/Resources/Public/JavaScript/Contrib/jquery/',
         '@lit/reactive-element' => 'EXT:core/Resources/Public/JavaScript/Contrib/@lit/reactive-element/reactive-element.js',

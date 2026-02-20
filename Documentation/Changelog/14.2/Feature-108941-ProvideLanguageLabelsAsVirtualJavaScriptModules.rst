@@ -13,7 +13,7 @@ Description
 
 JavaScript modules can now import language labels as code.
 The labels are exposed as a object that offers a `get()` method
-and allows to substitute placeholders.
+and allows to substitute placeholders according to the ICU message format.
 
 
 ..  code-block:: javascript
@@ -25,6 +25,17 @@ and allows to substitute placeholders.
     // Use label
     html`<p>{labels.get('groupType.global')}</p>`
 
+    // Retrieve label and use ICU Message Format placeholders
+    // Example label: <source>File "{filename}" deleted</source>
+    html`<p>{labels.get('file.deleted', { filename: 'my-file.txt' })}</p>`
+
+    // Render a label containing pseudo xml-tags
+    // Example label: "File <bold>{filename}</bold> deleted"
+    html`<p>{labels.get('file.deleted', {
+        filename: 'my-file.txt'
+        // Callback function that renders the contents of `<bold>`
+        bold: chunks => html`<strong>${chunks}</strong>`,
+    })}</p>`
 
 This avoids the need for controllers to inject arbitrary labels into
 global `TYPO3.lang` configuration, which impeded writing generic
