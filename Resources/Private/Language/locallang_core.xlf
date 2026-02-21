@@ -1518,6 +1518,9 @@
       <trans-unit id="countries.prioritized">
         <source>Prioritized countries</source>
       </trans-unit>
+      <trans-unit id="notifications.button.clearAll">
+        <source>Clear all</source>
+      </trans-unit>
     </body>
   </file>
 </xliff>
