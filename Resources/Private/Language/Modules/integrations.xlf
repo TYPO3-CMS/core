@@ -13,7 +13,7 @@
         <source>External system integrations</source>
       </trans-unit>
       <trans-unit id="description">
-        <source>This is the central hub for connecting TYPO3 with the world. External systems, third-party services, webhooks, translation providers, AI platforms, and countless other tools can be seamlessly integrated to supercharge TYPO3 installations and unlock endless possibilities.</source>
+        <source>Setup integrations between TYPO3 and external services such as webhooks, translation providers, AI platforms, and other third-party tools.</source>
       </trans-unit>
     </body>
   </file>
