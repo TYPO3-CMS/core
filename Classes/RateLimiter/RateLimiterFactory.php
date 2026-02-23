@@ -22,41 +22,86 @@ use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Symfony\Component\RateLimiter\LimiterInterface;
 use Symfony\Component\RateLimiter\RateLimiterFactory as SymfonyRateLimiterFactory;
 use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
-use TYPO3\CMS\Core\Authentication\AbstractUserAuthentication;
 use TYPO3\CMS\Core\Http\NormalizedParams;
 use TYPO3\CMS\Core\RateLimiter\Storage\CachingFrameworkStorage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-/**
- * @internal This is not part of the official TYPO3 Core API due to a limitation of the Symfony Rate Limiter API.
- */
 #[Autoconfigure(public: true, shared: false)]
-class RateLimiterFactory
+class RateLimiterFactory implements RateLimiterFactoryInterface
 {
-    public function createLoginRateLimiter(AbstractUserAuthentication $userAuthentication, ServerRequestInterface $request): LimiterInterface
+    public function __construct(
+        protected readonly CachingFrameworkStorage $storage,
+        protected readonly array $config = [],
+    ) {}
+
+    public function create(?string $key = null): LimiterInterface
     {
-        $loginType = $userAuthentication->loginType;
+        if ($this->config === []) {
+            throw new \LogicException(
+                'Cannot call create() on a RateLimiterFactory without configuration. '
+                . 'Use a pre-configured named service or call createLimiter() with an explicit config array.',
+                1740000001
+            );
+        }
+
+        $config = $this->applyConfigOverrides($this->config);
+        $factory = new SymfonyRateLimiterFactory($config, $this->storage);
+        return $factory->create($key);
+    }
+
+    public function createLimiter(array $config, ?string $key = null): LimiterInterface
+    {
+        $config = $this->applyConfigOverrides($config);
+        $factory = new SymfonyRateLimiterFactory($config, $this->storage);
+        return $factory->create($key);
+    }
+
+    public function createRequestBasedLimiter(ServerRequestInterface $request, array $configuration): LimiterInterface
+    {
         $normalizedParams = $request->getAttribute('normalizedParams') ?? NormalizedParams::createFromRequest($request);
         $remoteIp = $normalizedParams->getRemoteAddress();
-        $limiterId = sha1('typo3-login-' . $loginType);
+        return $this->createLimiter($configuration, $remoteIp);
+    }
+
+    public function createLoginRateLimiter(ServerRequestInterface $request, string $loginType): LimiterInterface
+    {
+        $normalizedParams = $request->getAttribute('normalizedParams') ?? NormalizedParams::createFromRequest($request);
+        $remoteIp = $normalizedParams->getRemoteAddress();
+        $limiterId = 'login-' . strtolower($loginType);
         $limit = (int)($GLOBALS['TYPO3_CONF_VARS'][$loginType]['loginRateLimit'] ?? 5);
         $interval = $GLOBALS['TYPO3_CONF_VARS'][$loginType]['loginRateLimitInterval'] ?? '15 minutes';
 
-        // If not enabled, return a null limiter
         $enabled = !$this->isIpExcluded($loginType, $remoteIp) && $limit > 0;
 
-        $config = [
-            'id' => $limiterId,
-            'policy' => ($enabled ? 'sliding_window' : 'no_limit'),
-            'limit' => $limit,
-            'interval' => $interval,
-        ];
-        $storage = ($enabled ? GeneralUtility::makeInstance(CachingFrameworkStorage::class) : new InMemoryStorage());
-        $limiterFactory = new SymfonyRateLimiterFactory(
-            $config,
-            $storage
+        if (!$enabled) {
+            $config = [
+                'id' => $limiterId,
+                'policy' => 'no_limit',
+                'limit' => $limit,
+                'interval' => $interval,
+            ];
+            $factory = new SymfonyRateLimiterFactory($config, new InMemoryStorage());
+            return $factory->create($remoteIp);
+        }
+
+        return $this->createLimiter(
+            [
+                'id' => $limiterId,
+                'policy' => 'sliding_window',
+                'limit' => $limit,
+                'interval' => $interval,
+            ],
+            $remoteIp
         );
-        return $limiterFactory->create($remoteIp);
+    }
+
+    protected function applyConfigOverrides(array $config): array
+    {
+        $overrides = $GLOBALS['TYPO3_CONF_VARS']['SYS']['rateLimiter'][$config['id']] ?? [];
+        if ($overrides !== []) {
+            $config = array_replace($config, $overrides);
+        }
+        return $config;
     }
 
     protected function isIpExcluded(string $loginType, string $remoteAddress): bool

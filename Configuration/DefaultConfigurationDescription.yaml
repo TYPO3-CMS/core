@@ -237,6 +237,9 @@ SYS:
               security.system.enforceFileExtensionMimeTypeConsistency:
                 type: bool
                 description: 'If on, only file extensions that are consistent with their expected mime-type are allowed to be processed in the File Abstraction Layer.'
+        rateLimiter:
+            type: array
+            description: 'Override rate limiter configuration by limiter ID. Each key is a limiter ID (e.g. "typo3-login-BE", "backend-password-recovery"), and each value is an array with keys like "limit", "interval", and/or "policy" to override the programmatic defaults.'
         availablePasswordHashAlgorithms:
             type: array
             description: 'A list of available password hash mechanisms. Extensions may register additional mechanisms here. This is usually not extended in system/settings.php.'

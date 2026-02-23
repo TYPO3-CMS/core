@@ -162,6 +162,9 @@ services:
   GuzzleHttp\ClientInterface:
     alias: GuzzleHttp\Client
     public: true
+  TYPO3\CMS\Core\RateLimiter\RateLimiterFactoryInterface:
+    alias: TYPO3\CMS\Core\RateLimiter\RateLimiterFactory
+    public: true
 
   # External dependencies
 

@@ -280,6 +280,7 @@ return [
                 ],
             ],
         ],
+        'rateLimiter' => [],
         'htmlSanitizer' => [
             'default' => \TYPO3\CMS\Core\Html\DefaultSanitizerBuilder::class,
             'i18n' => \TYPO3\CMS\Core\Html\I18nSanitizerBuilder::class,
