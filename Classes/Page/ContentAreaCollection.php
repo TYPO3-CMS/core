@@ -23,8 +23,10 @@ use Psr\Container\ContainerInterface;
  * Collection of content areas
  *
  * @internal
+ *
+ * @implements \IteratorAggregate<string, ContentArea>
  */
-final readonly class ContentAreaCollection implements ContainerInterface
+final readonly class ContentAreaCollection implements ContainerInterface, \IteratorAggregate
 {
     public function __construct(
         /** @var ContentAreaClosure[]|ContentArea[] $contentAreas */
@@ -76,5 +78,13 @@ final readonly class ContentAreaCollection implements ContainerInterface
             $areas[$identifier] = $data['area']->withRecords($data['records']);
         }
         return new self($areas);
+    }
+
+    /**
+     * @return \Traversable<string, ContentArea>
+     */
+    public function getIterator(): \Traversable
+    {
+        return new \ArrayIterator($this->contentAreas);
     }
 }
