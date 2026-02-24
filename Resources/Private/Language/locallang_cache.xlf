@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file source-language="en" datatype="plaintext" original="EXT:core/Resources/Private/Language/locallang_cache.xlf" date="2026-02-24T00:00:00Z" product-name="lang">
+    <header/>
+    <body>
+      <trans-unit id="page.label">
+        <source>Clear cache for this page</source>
+      </trans-unit>
+      <trans-unit id="group.pages.label">
+        <source>Flush frontend caches</source>
+      </trans-unit>
+      <trans-unit id="group.pages.description">
+        <source>Clear frontend and page-related caches.</source>
+      </trans-unit>
+      <trans-unit id="group.all.label">
+        <source>Flush all caches</source>
+      </trans-unit>
+      <trans-unit id="group.all.description">
+        <source>Clear frontend and page-related caches, all system-related caches, including localization, extension configuration, file and opcode caches. Rebuilding these caches may take some time.</source>
+      </trans-unit>
+      <!-- Notifications -->
+      <trans-unit id="notification.error.title">
+        <source>An error occurred</source>
+      </trans-unit>
+      <trans-unit id="notification.error.message">
+        <source>An error occurred while clearing the cache. Some caches may not have been cleared successfully.</source>
+      </trans-unit>
+      <trans-unit id="notification.page.success.title">
+        <source>Page cache cleared</source>
+      </trans-unit>
+      <trans-unit id="notification.page.success.message">
+        <source>Page cache for '%s' has been cleared.</source>
+      </trans-unit>
+      <trans-unit id="notification.page.error.title">
+        <source>Page cache not cleared</source>
+      </trans-unit>
+      <trans-unit id="notification.page.error.message">
+        <source>Page cache could not be cleared.</source>
+      </trans-unit>
+      <trans-unit id="notification.group.pages.success.title">
+        <source>Frontend caches cleared</source>
+      </trans-unit>
+      <trans-unit id="notification.group.pages.success.message">
+        <source>Frontend caches have been cleared.</source>
+      </trans-unit>
+      <trans-unit id="notification.group.all.success.title">
+        <source>All caches cleared</source>
+      </trans-unit>
+      <trans-unit id="notification.group.all.success.message">
+        <source>All caches have been cleared.</source>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

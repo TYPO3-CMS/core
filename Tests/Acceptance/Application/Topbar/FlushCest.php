@@ -46,9 +46,9 @@ final class FlushCest
     public function seeFlushCachesLinksInClearCacheModule(ApplicationTester $I): void
     {
         $I->click(Topbar::$dropdownToggleSelector, self::$topBarModuleSelector);
-        // Ensure existence of link for flush frontend caches
-        $I->canSee('Flush frontend caches', 'a');
-        // Ensure existence of link for flush all caches
-        $I->canSee('Flush all caches', 'a');
+        // Ensure existence of button for flush frontend caches
+        $I->canSee('Flush frontend caches', 'button');
+        // Ensure existence of button for flush all caches
+        $I->canSee('Flush all caches', 'button');
     }
 }

@@ -228,7 +228,7 @@
       <trans-unit id="labels.csv">
         <source>Download CSV file</source>
       </trans-unit>
-      <trans-unit id="labels.clear_cache">
+      <trans-unit id="labels.clear_cache" x-unused-since="14.2">
         <source>Clear cache for this page</source>
       </trans-unit>
       <trans-unit id="labels.no_title">
@@ -1041,43 +1041,43 @@
       <trans-unit id="rm.closeDoc">
         <source>Close</source>
       </trans-unit>
-      <trans-unit id="rm.clearCache_thisPage">
+      <trans-unit id="rm.clearCache_thisPage" x-unused-since="14.2">
         <source>This page</source>
       </trans-unit>
-      <trans-unit id="rm.clearCache_all">
+      <trans-unit id="rm.clearCache_all" x-unused-since="14.2">
         <source>Clear FE cache</source>
       </trans-unit>
-      <trans-unit id="rm.clearCache_pages">
+      <trans-unit id="rm.clearCache_pages" x-unused-since="14.2">
         <source>Clear Page Cache</source>
       </trans-unit>
-      <trans-unit id="rm.clearCache_allTypo3Conf">
+      <trans-unit id="rm.clearCache_allTypo3Conf" x-unused-since="14.2">
         <source>Clear cache in typo3conf/</source>
       </trans-unit>
-      <trans-unit id="rm.clearCacheMenu_all">
+      <trans-unit id="rm.clearCacheMenu_all" x-unused-since="14.2">
         <source>Clear all caches</source>
       </trans-unit>
-      <trans-unit id="rm.clearCacheMenu_pages">
+      <trans-unit id="rm.clearCacheMenu_pages" x-unused-since="14.2">
         <source>Clear page content cache</source>
       </trans-unit>
-      <trans-unit id="rm.clearCacheMenu_allTypo3Conf">
+      <trans-unit id="rm.clearCacheMenu_allTypo3Conf" x-unused-since="14.2">
         <source>Clear configuration cache</source>
       </trans-unit>
-      <trans-unit id="flushPageCachesTitle">
+      <trans-unit id="flushPageCachesTitle" x-unused-since="14.2">
         <source>Flush frontend caches</source>
       </trans-unit>
-      <trans-unit id="flushPageCachesDescription">
+      <trans-unit id="flushPageCachesDescription" x-unused-since="14.2">
         <source>Clear frontend and page-related caches.</source>
       </trans-unit>
-      <trans-unit id="flushAllCachesTitle2">
+      <trans-unit id="flushAllCachesTitle2" x-unused-since="14.2">
         <source>Flush all caches</source>
       </trans-unit>
-      <trans-unit id="flushAllCachesDescription2">
+      <trans-unit id="flushAllCachesDescription2" x-unused-since="14.2">
         <source>Clear frontend and page-related caches, all system-related caches, including localization, extension configuration, file and opcode caches. Rebuilding these caches may take some time.</source>
       </trans-unit>
-      <trans-unit id="flushCaches.error">
+      <trans-unit id="flushCaches.error" x-unused-since="14.2">
         <source>An error occurred</source>
       </trans-unit>
-      <trans-unit id="flushCaches.error.description">
+      <trans-unit id="flushCaches.error.description" x-unused-since="14.2">
         <source>An error occurred while clearing the cache. Some caches may not have been cleared successfully.</source>
       </trans-unit>
       <trans-unit id="rm.adminFunctions">
