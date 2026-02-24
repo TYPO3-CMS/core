@@ -1038,7 +1038,7 @@ class PageRepository implements LoggerAwareInterface
         $shortcutMode = (int)($page['shortcut_mode'] ?? 0);
 
         if ($dokType === self::DOKTYPE_SHORTCUT && (($shortcut = (int)($page['shortcut'] ?? 0)) || $shortcutMode)) {
-            if ($shortcutMode === self::SHORTCUT_MODE_NONE && $shortcut) {
+            if ($shortcutMode === self::SHORTCUT_MODE_NONE && $shortcut > 0) {
                 // No shortcut_mode set, so target is directly set in $page['shortcut']
                 $searchField = 'uid';
                 $searchUid = $shortcut;
