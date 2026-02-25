@@ -17,6 +17,7 @@ declare(strict_types=1);
 
 namespace TYPO3\CMS\Core\Routing;
 
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
 use Symfony\Component\Routing\Exception\MissingMandatoryParametersException;
@@ -38,6 +39,7 @@ use TYPO3\CMS\Core\Routing\Enhancer\EnhancerInterface;
 use TYPO3\CMS\Core\Routing\Enhancer\InflatableEnhancerInterface;
 use TYPO3\CMS\Core\Routing\Enhancer\ResultingInterface;
 use TYPO3\CMS\Core\Routing\Enhancer\RoutingEnhancerInterface;
+use TYPO3\CMS\Core\Routing\Event\AfterPageUriGeneratedEvent;
 use TYPO3\CMS\Core\Schema\Capability\TcaSchemaCapability;
 use TYPO3\CMS\Core\Schema\TcaSchemaFactory;
 use TYPO3\CMS\Core\Site\Entity\Site;
@@ -80,6 +82,7 @@ class PageRouter implements RouterInterface
     protected CacheHashCalculator $cacheHashCalculator;
     protected Context $context;
     protected RequestContextFactory $requestContextFactory;
+    protected EventDispatcherInterface $eventDispatcher;
 
     /**
      * A page router is always bound to a specific site.
@@ -96,6 +99,7 @@ class PageRouter implements RouterInterface
             GeneralUtility::makeInstance(HashService::class)
         );
         $this->requestContextFactory = GeneralUtility::makeInstance(RequestContextFactory::class);
+        $this->eventDispatcher = GeneralUtility::makeInstance(EventDispatcherInterface::class);
     }
 
     /**
@@ -344,16 +348,16 @@ class PageRouter implements RouterInterface
         $referenceType = $type === static::ABSOLUTE_PATH ? UrlGenerator::ABSOLUTE_PATH : UrlGenerator::ABSOLUTE_URL;
         /**
          * @var string $routeName
-         * @var Route $route
+         * @var Route $routeCandidate
          */
-        foreach ($allRoutes as $routeName => $route) {
+        foreach ($allRoutes as $routeName => $routeCandidate) {
             try {
                 $parameters = $originalParameters;
-                if ($route->hasOption('deflatedParameters')) {
-                    $parameters = $route->getOption('deflatedParameters');
+                if ($routeCandidate->hasOption('deflatedParameters')) {
+                    $parameters = $routeCandidate->getOption('deflatedParameters');
                 }
                 // skip the route, in case any aspect of it could not be mapped to a value
-                if ($mappableProcessor->generate($route, $parameters) === false) {
+                if ($mappableProcessor->generate($routeCandidate, $parameters) === false) {
                     continue;
                 }
                 // ABSOLUTE_URL is used as default fallback
@@ -365,11 +369,11 @@ class PageRouter implements RouterInterface
                 // (even if not applied in route, it will be exposed during resolving)
                 $appliedDefaults = $matchedRoute->getOption('_appliedDefaults') ?? [];
                 parse_str($uri->getQuery(), $remainingQueryParameters);
-                $enhancer = $route->getEnhancer();
+                $enhancer = $routeCandidate->getEnhancer();
                 if ($enhancer instanceof InflatableEnhancerInterface) {
                     $remainingQueryParameters = $enhancer->inflateParameters($remainingQueryParameters);
                 }
-                $pageRouteResult = $this->buildPageArguments($route, array_merge($appliedDefaults, $parameters), $remainingQueryParameters);
+                $pageRouteResult = $this->buildPageArguments($routeCandidate, array_merge($appliedDefaults, $parameters), $remainingQueryParameters);
                 break;
             } catch (MissingMandatoryParametersException $e) {
                 // no match
@@ -398,7 +402,10 @@ class PageRouter implements RouterInterface
         if ($fragment) {
             $uri = $uri->withFragment($fragment);
         }
-        return $uri;
+
+        $event = new AfterPageUriGeneratedEvent($uri, $route, $originalParameters, $fragment, $type, $language, $this->site);
+        $this->eventDispatcher->dispatch($event);
+        return $event->getUri();
     }
 
     /**

@@ -18,6 +18,9 @@ declare(strict_types=1);
 namespace TYPO3\CMS\Core\Tests\Unit\Routing;
 
 use PHPUnit\Framework\Attributes\Test;
+use Psr\EventDispatcher\EventDispatcherInterface;
+use Psr\EventDispatcher\ListenerProviderInterface;
+use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Routing\BackendEntryPointResolver;
 use TYPO3\CMS\Core\Routing\PageArguments;
@@ -39,6 +42,7 @@ final class PageRouterTest extends UnitTestCase
     {
         $requestContextFactory = new RequestContextFactory(new BackendEntryPointResolver());
         GeneralUtility::addInstance(RequestContextFactory::class, $requestContextFactory);
+        GeneralUtility::setSingletonInstance(EventDispatcherInterface::class, new EventDispatcher($this->createMock(ListenerProviderInterface::class)));
         parent::setUp();
     }
 
