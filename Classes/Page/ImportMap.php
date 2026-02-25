@@ -149,7 +149,7 @@ class ImportMap
         } else {
             $this->policyRegistry?->appendMutationCollection(
                 new MutationCollection(
-                    new Mutation(MutationMode::Extend, Directive::ScriptSrc, HashValue::hash($json))
+                    new Mutation(MutationMode::Extend, Directive::ScriptSrcElem, HashValue::hash($json))
                 )
             );
         }
