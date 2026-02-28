@@ -1994,7 +1994,7 @@ class DataHandler
                 $value instanceof \DateTimeImmutable => $value,
                 $value instanceof \DateTimeInterface => \DateTimeImmutable::createFromInterface($value),
                 // Reprocessing of an existing database value (e.g. Unix timestamp for date/datetime or seconds for time fields)
-                is_int($value) => DateTimeFactory::createFomDatabaseValueAndTCAConfig($value, $tcaFieldConf),
+                is_int($value) => DateTimeFactory::createFromDatabaseValueAndTCAConfig($value, $tcaFieldConf),
                 // The value we receive from the backend form is an unqualified ISO 8601 date,
                 // for instance "1999-11-11T11:11:11".
                 // We can also accept an ISO8601 date with offsets,
