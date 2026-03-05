@@ -247,16 +247,16 @@ final class FalMetadataCest
     }
 
     /**
-     * Click a content element in the page module to open it in the context panel,
-     * then switch into the context panel iframe.
+     * Click a content element in the page module to open it in the modal,
+     * then switch into the modal iframe.
      */
     private function openRecordInContextPanel(ApplicationTester $I, string $recordTitle): void
     {
         $I->switchToContentFrame();
         $I->click('//typo3-backend-contextual-record-edit-trigger[contains(., "' . $recordTitle . '")]');
         $I->switchToMainFrame();
-        $I->waitForElement('iframe[name="context_panel_frame"]', 10);
-        $I->switchToIFrame('context_panel_frame');
+        $I->waitForElement('iframe[name="modal_frame"]', 10);
+        $I->switchToIFrame('modal_frame');
         $I->waitForElementNotVisible('#t3js-ui-block');
         $I->waitForText($recordTitle);
     }
