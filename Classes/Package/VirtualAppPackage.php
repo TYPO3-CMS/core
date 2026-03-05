@@ -17,7 +17,10 @@ declare(strict_types=1);
 
 namespace TYPO3\CMS\Core\Package;
 
-use TYPO3\CMS\Core\SystemResource\Package\AppResourceCollection;
+use TYPO3\CMS\Core\Package\Resource\Definition\PublicResourceDefinition;
+use TYPO3\CMS\Core\Package\Resource\ResourceCollection;
+use TYPO3\CMS\Core\Package\Resource\ResourceCollectionInterface;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * This represents the app package (root package in Composer terms)
@@ -30,18 +33,49 @@ final class VirtualAppPackage extends Package
 
     public function __construct(
         PackageManager $packageManager,
-        string $packageKey,
         string $packagePath,
         private readonly string $relativePublicPath,
     ) {
-        parent::__construct($packageManager, $packageKey, $packagePath, true);
-        $this->packageMetaData = new MetaData($packageKey);
+        parent::__construct($packageManager, self::APP_PACKAGE_KEY, $packagePath, true);
+        $this->packageMetaData = new MetaData(self::APP_PACKAGE_KEY);
         $this->composerManifest = new \stdClass();
         $this->composerManifest->name = self::APP_PACKAGE_KEY;
     }
 
     protected function createResources(): void
     {
-        $this->resources = new AppResourceCollection($this->relativePublicPath);
+        $resourceDefinitionClosure = $this->getResourceDefinitions(
+            __DIR__ . '/../../Configuration/DefaultAppResources.php'
+        );
+        $customResourceDefinitionClosure = $this->getResourceDefinitions(
+            $this->getPackagePath() . 'config/system/resources.php'
+        );
+        $resourceDefinitions = array_merge(
+            $resourceDefinitionClosure($this, $this->relativePublicPath),
+            $customResourceDefinitionClosure === null ? [] : $customResourceDefinitionClosure($this, $this->relativePublicPath),
+        );
+        $this->resources = new ResourceCollection(
+            $resourceDefinitions,
+            null,
+            false,
+        );
+    }
+
+    public function getResources(): ResourceCollectionInterface
+    {
+        $resources = parent::getResources();
+        if (!$resources instanceof ResourceCollection) {
+            throw new \RuntimeException('Resource object must not be overridden', 1774537784);
+        }
+        $resourceDefinitions = [];
+        if (!empty($GLOBALS['TYPO3_CONF_VARS']['FE']['addAllowedPaths'])) {
+            trigger_error('$GLOBALS[\'TYPO3_CONF_VARS\'][\'FE\'][\'addAllowedPaths\'] is deprecated. Use resource definitions instead.', E_USER_DEPRECATED);
+            $allowedFolders = GeneralUtility::trimExplode(',', $GLOBALS['TYPO3_CONF_VARS']['FE']['addAllowedPaths'], true);
+            foreach ($allowedFolders as $folder) {
+                $resourceDefinitions[] = new PublicResourceDefinition($this->relativePublicPath . trim($folder, '/'));
+            }
+            $resources = $resources->withAdditionalResources(new ResourceCollection($resourceDefinitions, null));
+        }
+        return $resources;
     }
 }

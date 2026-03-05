@@ -17,34 +17,63 @@ declare(strict_types=1);
 
 namespace TYPO3\CMS\Core\Package\Resource;
 
-use TYPO3\CMS\Core\Package\PackageInterface;
+use TYPO3\CMS\Core\Package\Resource\Definition\PublicResourceDefinition;
+use TYPO3\CMS\Core\Package\Resource\Definition\ResourceDefinition;
+use TYPO3\CMS\Core\Package\Resource\Definition\ResourceDefinitionInterface;
+use TYPO3\CMS\Core\SystemResource\Exception\SystemResourceDefinitionNotFoundException;
 
 /**
  * @internal This is subject to change during v14 development. Do not use.
  */
 final readonly class ResourceCollection implements ResourceCollectionInterface
 {
-    private ?string $iconIdentifier;
-
+    /**
+     * @param list<ResourceDefinitionInterface> $resourceDefinitions
+     */
     public function __construct(
-        PackageInterface $package,
-    ) {
-        $relativeIconPath = $package->getPackageIcon();
-        $this->iconIdentifier = $relativeIconPath !== null ? sprintf(
-            'PKG:%s:%s',
-            $package->getValueFromComposerManifest('name') ?? $package->getPackageKey(),
-            $relativeIconPath,
-        ) : null;
+        private array $resourceDefinitions = [],
+        private ?string $iconIdentifier = null,
+        private bool $createResourcesOnTheFly = true,
+    ) {}
+
+    /**
+     * @internal Only to be used in VirtualAppPackage. Will be removed when deprecated asset config is removed
+     */
+    public function withAdditionalResources(self $resources): ResourceCollectionInterface
+    {
+        return new self(
+            array_merge($this->resourceDefinitions, $resources->resourceDefinitions),
+            $this->iconIdentifier,
+        );
+    }
+
+    public function definitionForPath(string $relativePath): ResourceDefinitionInterface
+    {
+        foreach ($this->resourceDefinitions as $config) {
+            if ($config->matches($relativePath)) {
+                return $config;
+            }
+        }
+        if ($this->createResourcesOnTheFly) {
+            trigger_error('Resource identifiers outside ouf Resources/Private, Resources/Public or Configuration folder of extensions are deprecated. Define custom resources if required. Used resource: ' . $relativePath, E_USER_DEPRECATED);
+            return new ResourceDefinition($relativePath);
+        }
+        throw new SystemResourceDefinitionNotFoundException(sprintf('Project path "%s" is not allowed. Define custom resources if required.', $relativePath), 1763381519);
     }
 
     public function isPublicPath(string $relativePath): bool
     {
-        return str_starts_with($relativePath, self::PACKAGE_DEFAULT_PUBLIC_DIR);
+        return $this->definitionForPath($relativePath) instanceof PublicResourceDefinition;
     }
 
-    public function isValidPath(string $relativePath): bool
+    public function getPublicResourceDefinitions(): array
     {
-        return true;
+        return array_filter(
+            array_map(
+                static fn(ResourceDefinitionInterface $definition) => $definition instanceof PublicResourceDefinition ? $definition : null,
+                $this->resourceDefinitions,
+            )
+        );
     }
 
     public function getPackageIcon(): ?string

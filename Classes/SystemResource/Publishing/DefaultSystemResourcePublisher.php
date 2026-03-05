@@ -27,7 +27,6 @@ use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageQueue;
 use TYPO3\CMS\Core\Package\Exception\PackageAssetsPublishingFailedException;
 use TYPO3\CMS\Core\Package\PackageInterface;
-use TYPO3\CMS\Core\Package\Resource\ResourceCollectionInterface;
 use TYPO3\CMS\Core\SystemResource\Exception\CanNotGenerateUriException;
 use TYPO3\CMS\Core\SystemResource\Publishing\FileSystem\FileSystemPublisherInterface;
 use TYPO3\CMS\Core\SystemResource\Type\PublicResourceInterface;
@@ -66,63 +65,63 @@ final readonly class DefaultSystemResourcePublisher implements SystemResourcePub
         PackageInterface $package,
     ): FlashMessageQueue {
         $queue = new FlashMessageQueue('asset:publish');
-        $fileSystemResourcesPath = $package->getPackagePath() . ResourceCollectionInterface::PACKAGE_DEFAULT_PUBLIC_DIR;
-        if (str_starts_with($fileSystemResourcesPath, Environment::getPublicPath())) {
-            $queue->addMessage(new FlashMessage(
-                sprintf(
-                    'Skipping asset publishing for extension "%s",'
-                    . chr(10)
-                    . 'because its public resources directory is already public.',
-                    $package->getPackageKey(),
-                ),
-                $package->getPackageKey(),
-                ContextualFeedbackSeverity::NOTICE,
-            ));
-            return $queue;
-        }
-        $relativePath = substr($fileSystemResourcesPath, strlen(Environment::getProjectPath()));
-        if (!file_exists($fileSystemResourcesPath)) {
-            $queue->addMessage(new FlashMessage(
-                sprintf(
-                    'Skipping assets publishing for extension "%s",'
-                    . chr(10)
-                    . 'because its public resources directory "%s" does not exist.',
-                    $package->getPackageKey(),
-                    '.' . $relativePath,
-                ),
-                $package->getPackageKey(),
-                ContextualFeedbackSeverity::NOTICE,
-            ));
-            return $queue;
-        }
-        [$relativePrefix] = explode(ResourceCollectionInterface::PACKAGE_DEFAULT_PUBLIC_DIR, $relativePath);
-        $publicResourcesPath = Environment::getPublicPath() . '/' . $this->publishingDirectory . md5($relativePrefix);
-        GeneralUtility::mkdir(dirname($publicResourcesPath));
-        try {
-            foreach ($this->fileSystemPublishers as $publisher) {
-                if (!$publisher->canPublish($fileSystemResourcesPath, $publicResourcesPath)) {
-                    continue;
-                }
-                $publisher->publishFolder($fileSystemResourcesPath, $publicResourcesPath);
-                break;
-            }
-        } catch (PackageAssetsPublishingFailedException $e) {
-            $queue->addMessage(new FlashMessage(
-                sprintf(
-                    'Could not publish public resources for extension "%s" by using the "%s" strategy.'
-                    . chr(10)
-                    . 'Check whether the target directory "%s" already exists'
-                    . chr(10)
-                    . 'and TYPO3 has permissions to write inside the "_assets" directory.',
-                    $package->getPackageKey(),
-                    $e->publishingStrategy,
-                    '.' . substr($publicResourcesPath, strlen(Environment::getProjectPath())),
-                ),
-                $package->getPackageKey(),
-                ContextualFeedbackSeverity::ERROR,
-            ));
-        }
+        $resourceDefinitions = $package
+            ->getResources()
+            ->getPublicResourceDefinitions();
 
+        foreach ($resourceDefinitions as $definition) {
+            $publishingContext = new ResourcePublishingContext(
+                package: $package,
+                definition: $definition,
+            );
+            if ($publishingContext->isSourcePublic) {
+                continue;
+            }
+            $publicResourcesPath = Environment::getPublicPath() . '/' . $this->publishingDirectory . $publishingContext->prefix;
+            GeneralUtility::mkdir_deep(dirname($publicResourcesPath));
+            try {
+                foreach ($this->fileSystemPublishers as $publisher) {
+                    if (!$publisher->canPublish($publishingContext->filesystemPath, $publicResourcesPath)) {
+                        continue;
+                    }
+                    if (is_file($publishingContext->filesystemPath)) {
+                        $publisher->publishFile($publishingContext->filesystemPath, $publicResourcesPath);
+                    } else {
+                        if (!is_dir($publishingContext->filesystemPath)) {
+                            $queue->addMessage(new FlashMessage(
+                                sprintf(
+                                    'Did not publish public resource for extension "%s".'
+                                    . chr(10)
+                                    . 'The source file/directory "%s" does not exist.',
+                                    $package->getPackageKey(),
+                                    substr($publishingContext->filesystemPath, strlen(Environment::getProjectPath())),
+                                ),
+                                $package->getPackageKey(),
+                                ContextualFeedbackSeverity::INFO,
+                            ));
+                            break;
+                        }
+                        $publisher->publishFolder($publishingContext->filesystemPath, $publicResourcesPath);
+                    }
+                    break;
+                }
+            } catch (PackageAssetsPublishingFailedException $e) {
+                $queue->addMessage(new FlashMessage(
+                    sprintf(
+                        'Could not publish public resources for extension "%s" by using the "%s" strategy.'
+                        . chr(10)
+                        . 'Check whether the target directory "%s" already exists'
+                        . chr(10)
+                        . 'and TYPO3 has permissions to write inside the "_assets" directory.',
+                        $package->getPackageKey(),
+                        $e->publishingStrategy,
+                        '.' . substr($publicResourcesPath, strlen(Environment::getProjectPath())),
+                    ),
+                    $package->getPackageKey(),
+                    ContextualFeedbackSeverity::ERROR,
+                ));
+            }
+        }
         return $queue;
     }
 

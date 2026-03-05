@@ -18,6 +18,9 @@ declare(strict_types=1);
 namespace TYPO3\CMS\Core\SystemResource\Type;
 
 use Psr\Http\Message\UriInterface;
+use TYPO3\CMS\Core\Package\Resource\Definition\PublicResourceDefinition;
+use TYPO3\CMS\Core\SystemResource\Identifier\PackageResourceIdentifier;
+use TYPO3\CMS\Core\SystemResource\Publishing\ResourceUriBuildingContext;
 use TYPO3\CMS\Core\SystemResource\Publishing\SystemResourceUriGeneratorInterface;
 
 /**
@@ -25,12 +28,29 @@ use TYPO3\CMS\Core\SystemResource\Publishing\SystemResourceUriGeneratorInterface
  */
 final class PublicPackageFile extends PackageResource implements PublicResourceInterface
 {
+    public function __construct(
+        PackageResourceIdentifier $identifier,
+        PublicResourceDefinition $resourceDefinition,
+    ) {
+        parent::__construct($identifier, $resourceDefinition);
+    }
+
     public function getPublicUri(SystemResourceUriGeneratorInterface $uriGenerator): UriInterface
     {
-        return $uriGenerator->generateForPublicResourceBasedOnAbsolutePath(
-            $this,
-            $this->identifier->getPackage()->getPackagePath() . $this->identifier->getRelativePath(),
+        // This is fine, as the type is enforced in constructor
+        assert($this->resourceDefinition instanceof PublicResourceDefinition);
+        return $uriGenerator->generateForPackageResource(
+            new ResourceUriBuildingContext(
+                resource: $this,
+                package: $this->identifier->getPackage(),
+                definition: $this->resourceDefinition,
+            ),
         );
+    }
+
+    public function getRelativePath(): string
+    {
+        return $this->identifier->getRelativePath();
     }
 
     public function isPublished(): bool
@@ -49,6 +69,11 @@ final class PublicPackageFile extends PackageResource implements PublicResourceI
         if ($packageResource instanceof PublicResourceInterface) {
             throw new \LogicException('It is pointless to create a public resource from an already public resource', 1761217630);
         }
-        return new self($packageResource->identifier);
+        return new self(
+            $packageResource->identifier,
+            new PublicResourceDefinition(
+                $packageResource->resourceDefinition->getRelativePath()
+            )
+        );
     }
 }

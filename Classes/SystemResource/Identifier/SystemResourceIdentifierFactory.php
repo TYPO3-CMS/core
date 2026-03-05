@@ -145,9 +145,6 @@ final readonly class SystemResourceIdentifierFactory
         } catch (UnknownPackageException $e) {
             throw new InvalidSystemResourceIdentifierException(sprintf('Package with key "%s" does not exist. (Given identifier "%s")', $packageKey, $givenIdentifier), 1763381504, $e);
         }
-        if (!$package->getResources()->isValidPath($relativePath)) {
-            throw new InvalidSystemResourceIdentifierException(sprintf('Project path "%s" is not allowed', $relativePath), 1763381519);
-        }
         return $package;
     }
 }

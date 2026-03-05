@@ -151,17 +151,17 @@ class PackageManager implements SingletonInterface
     {
         try {
             $this->loadPackageManagerStatesFromCache();
-        } catch (PackageManagerCacheUnavailableException $exception) {
+        } catch (PackageManagerCacheUnavailableException) {
             $this->loadPackageStates();
             $this->initializePackageObjects();
             $appPackage = new VirtualAppPackage(
                 $this,
-                VirtualAppPackage::APP_PACKAGE_KEY,
                 Environment::getProjectPath() . '/',
                 '',
             );
             $this->registerPackage($appPackage);
             $this->registerActivePackage($appPackage);
+            $this->validateResources();
             $this->saveToPackageCache();
         }
     }
@@ -192,6 +192,56 @@ class PackageManager implements SingletonInterface
             $this->packages,
         );
         $this->packageCache->store($cacheEntry);
+    }
+
+    /**
+     * @todo this does not belong here and should be extracted into a different service
+     */
+    protected function validateResources(): void
+    {
+        $publicPrefixes = [];
+        foreach ($this->packages as $package) {
+            if (!$package instanceof Package) {
+                continue;
+            }
+            $packageKey = $package->getPackageKey();
+            $resourcePaths = [];
+            foreach ($package->getResources()->getPublicResourceDefinitions() as $resource) {
+                $relativePath = $resource->getRelativePath();
+                if (
+                    str_starts_with($relativePath, '/')
+                    || str_ends_with($relativePath, '/')
+                    || !GeneralUtility::validPathStr($relativePath)
+                ) {
+                    throw new \RuntimeException(sprintf(
+                        'Invalid relative path "%s" defined by package "%s". Relative paths must not have leading, or trailing slashes, or backpaths (../), or other malicious characters.',
+                        $relativePath,
+                        $packageKey,
+                    ), 1774612899);
+                }
+                if (isset($resourcePaths[$relativePath])) {
+                    throw new \RuntimeException(sprintf(
+                        'Relative path "%s" is already defined by package "%s". Resource definitions must be unique.',
+                        $relativePath,
+                        $packageKey,
+                    ), 1774612999);
+                }
+                $resourcePaths[$relativePath] = true;
+                $publicPrefix = $resource->getPublicPrefix();
+                if (!is_string($publicPrefix)) {
+                    continue;
+                }
+                if (isset($publicPrefixes[$publicPrefix])) {
+                    throw new \RuntimeException(sprintf(
+                        'Public prefix "%s" is already defined by package "%s" can not be redefined by package "%s"',
+                        $publicPrefix,
+                        $publicPrefixes[$publicPrefix],
+                        $packageKey,
+                    ), 1774612898);
+                }
+                $publicPrefixes[$publicPrefix] = $packageKey;
+            }
+        }
     }
 
     /**
@@ -1250,6 +1300,7 @@ class PackageManager implements SingletonInterface
                 $this->loadPackageStates();
                 $this->initializePackageObjects();
             }
+            $this->validateResources();
             $this->saveToPackageCache();
         }
     }

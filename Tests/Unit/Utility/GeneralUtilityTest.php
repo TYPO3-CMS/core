@@ -3042,7 +3042,7 @@ final class GeneralUtilityTest extends UnitTestCase
             ->willReturn('/path/to/foo/');
         $package
             ->method('getResources')
-            ->willReturn(new ResourceCollection($package));
+            ->willReturn(new ResourceCollection());
         $packageManager
             ->method('getActivePackages')
             ->willReturn(['foo' => $package]);

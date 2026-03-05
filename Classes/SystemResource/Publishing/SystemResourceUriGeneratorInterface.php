@@ -19,7 +19,6 @@ namespace TYPO3\CMS\Core\SystemResource\Publishing;
 
 use Psr\Http\Message\UriInterface;
 use TYPO3\CMS\Core\Resource\File;
-use TYPO3\CMS\Core\SystemResource\Type\PublicResourceInterface;
 
 /**
  * This is an implementation detail to allow not exposing the absolute file path
@@ -30,6 +29,8 @@ use TYPO3\CMS\Core\SystemResource\Type\PublicResourceInterface;
  */
 interface SystemResourceUriGeneratorInterface
 {
-    public function generateForPublicResourceBasedOnAbsolutePath(PublicResourceInterface $resource, string $absoluteResourcePath): UriInterface;
+    public function generateForPackageResource(
+        ResourceUriBuildingContext $context,
+    ): UriInterface;
     public function generateForFile(File $file): UriInterface;
 }

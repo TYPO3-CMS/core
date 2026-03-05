@@ -59,8 +59,46 @@ final class DefaultResourcePublisherTest extends FunctionalTestCase
         $this->file->cleanupCreatedFiles();
     }
 
+    public static function publishesAssetsToAssetsDirectoryDataProvider(): \Generator
+    {
+        yield 'core Resources/Public' => [
+            'extensionKey' => 'core',
+            'expectedFile' => '/_assets/d25de869aebcd01495d2fe67ad5b0e25/Icons/Extension.svg',
+            'unlinkFile' => '/_assets/d25de869aebcd01495d2fe67ad5b0e25',
+        ];
+        yield 'test_system_resources Resources/Public' => [
+            'extensionKey' => 'test_system_resources',
+            'expectedFile' => '/_assets/26f8e52d460fac27eea3f36b9efc5efc/Icons/Extension.svg',
+            'unlinkFile' => '/_assets/26f8e52d460fac27eea3f36b9efc5efc',
+            'resourceString' => 'PKG:typo3tests/test-system-resources:Resources/Public/Icons/Extension2.svg',
+            'url' => '/_assets/26f8e52d460fac27eea3f36b9efc5efc/Icons/Extension2.svg',
+        ];
+        yield 'test_system_resources Resources/Public4' => [
+            'extensionKey' => 'test_system_resources',
+            'expectedFile' => '/_assets/7922c0678b0b1a59ae0d9417ef508d8d/.gitkeep',
+            'unlinkFile' => '/_assets/7922c0678b0b1a59ae0d9417ef508d8d',
+            'resourceString' => 'PKG:typo3tests/test-system-resources:Resources/Public4/Extension.svg',
+            'url' => '/_assets/7922c0678b0b1a59ae0d9417ef508d8d/Extension.svg',
+        ];
+        yield 'test_system_resources Resources/PublicFiles/Html/ToBePublished1.html' => [
+            'extensionKey' => 'test_system_resources',
+            'expectedFile' => '/_assets/1492c25b9324b34ab800bf15fb25f86d/ToBePublished1.html',
+            'unlinkFile' => '/_assets/1492c25b9324b34ab800bf15fb25f86d/ToBePublished1.html',
+            'resourceString' => 'PKG:typo3tests/test-system-resources:Resources/PublicFiles/Html/ToBePublished1.html',
+            'url' => '/_assets/1492c25b9324b34ab800bf15fb25f86d/ToBePublished1.html',
+        ];
+        yield 'test_system_resources Resources/PublicFiles/Html/ToBePublished2.html' => [
+            'extensionKey' => 'test_system_resources',
+            'expectedFile' => '/_assets/test_system_resources/custom/folder/published2.html',
+            'unlinkFile' => '/_assets/test_system_resources/custom/folder/published2.html',
+            'resourceString' => 'PKG:typo3tests/test-system-resources:Resources/PublicFiles/Html/ToBePublished2.html',
+            'url' => '/_assets/test_system_resources/custom/folder/published2.html',
+        ];
+    }
+
     #[Test]
-    public function publishesAssetsToAssetsDirectory(): void
+    #[DataProvider('publishesAssetsToAssetsDirectoryDataProvider')]
+    public function publishesAssetsToAssetsDirectory(string $extensionKey, string $expectedFile, string $unlinkFile, ?string $resourceString = null, ?string $url = null): void
     {
         Environment::initialize(
             Environment::getContext(),
@@ -76,9 +114,15 @@ final class DefaultResourcePublisherTest extends FunctionalTestCase
         GeneralUtility::mkdir_deep(Environment::getPublicPath() . '/typo3temp');
         $resourcePublisher = $this->get(DefaultSystemResourcePublisher::class);
         $packageManager = $this->get(PackageManager::class);
-        $resourcePublisher->publishResources($packageManager->getPackage('core'));
-        self::assertFileExists(Environment::getPublicPath() . '/_assets/d25de869aebcd01495d2fe67ad5b0e25/Icons/Extension.svg');
-        unlink(Environment::getPublicPath() . '/_assets/d25de869aebcd01495d2fe67ad5b0e25');
+        $resourcePublisher->publishResources($packageManager->getPackage($extensionKey));
+        self::assertFileExists(Environment::getPublicPath() . $expectedFile);
+        unlink(Environment::getPublicPath() . $unlinkFile);
+
+        if ($resourceString !== null) {
+            $resourceFactory = $this->get(SystemResourceFactory::class);
+            $resource = $resourceFactory->createPublicResource($resourceString);
+            self::assertStringStartsWith($url, (string)$resourcePublisher->generateUri($resource, null));
+        }
     }
 
     #[Test]

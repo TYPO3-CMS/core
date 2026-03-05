@@ -18,12 +18,14 @@ declare(strict_types=1);
 namespace TYPO3\CMS\Core\Tests\Functional\SystemResource;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\Attributes\Test;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\StorageRepository;
 use TYPO3\CMS\Core\SystemResource\Exception\CanNotResolvePublicResourceException;
 use TYPO3\CMS\Core\SystemResource\Exception\CanNotResolveSystemResourceException;
 use TYPO3\CMS\Core\SystemResource\Exception\InvalidSystemResourceIdentifierException;
+use TYPO3\CMS\Core\SystemResource\Exception\SystemResourceDefinitionNotFoundException;
 use TYPO3\CMS\Core\SystemResource\Publishing\SystemResourceUriGeneratorInterface;
 use TYPO3\CMS\Core\SystemResource\SystemResourceFactory;
 use TYPO3\CMS\Core\SystemResource\Type\PublicResourceInterface;
@@ -180,11 +182,11 @@ final class SystemResourceFactoryTest extends FunctionalTestCase
         ];
         yield 'not in asset, _assets nor uploads folder' => [
             'PKG:typo3/app:typo3temp/foo/Extension.svg',
-            InvalidSystemResourceIdentifierException::class,
+            SystemResourceDefinitionNotFoundException::class,
         ];
         yield 'legacy resolving not in asset, _assets nor uploads folder, but file exists' => [
             'typo3temp/foo/Extension.svg',
-            InvalidSystemResourceIdentifierException::class,
+            SystemResourceDefinitionNotFoundException::class,
         ];
         yield 'not existing combined identifier' => [
             'FAL:1:/foo/bar/Extension.svg',
@@ -253,13 +255,12 @@ final class SystemResourceFactoryTest extends FunctionalTestCase
     }
 
     #[Test]
+    #[IgnoreDeprecations]
     public function createResourceCreatesResourceForAllowedFolder(): void
     {
         $GLOBALS['TYPO3_CONF_VARS']['FE']['addAllowedPaths'] = 'typo3temp/foo,typo3temp/bar/';
         $resourceFactory = $this->get(SystemResourceFactory::class);
         $resource = $resourceFactory->createResource('PKG:typo3/app:typo3temp/foo/Extension.svg');
-        self::assertInstanceOf(PublicResourceInterface::class, $resource);
-        $resource = $resourceFactory->createResource('PKG:typo3/app:typo3temp/foobar/Extension.svg');
         self::assertInstanceOf(PublicResourceInterface::class, $resource);
         $resource = $resourceFactory->createResource('PKG:typo3/app:typo3temp/bar/Extension.svg');
         self::assertInstanceOf(PublicResourceInterface::class, $resource);

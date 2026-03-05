@@ -17,6 +17,7 @@ declare(strict_types=1);
 
 namespace TYPO3\CMS\Core\SystemResource\Type;
 
+use TYPO3\CMS\Core\Package\Resource\Definition\ResourceDefinitionInterface;
 use TYPO3\CMS\Core\SystemResource\Exception\SystemResourceDoesNotExistException;
 use TYPO3\CMS\Core\SystemResource\Identifier\PackageResourceIdentifier;
 use TYPO3\CMS\Core\Type\File\FileInfo;
@@ -30,7 +31,10 @@ class PackageResource implements SystemResourceInterface
 {
     private ?FileInfo $fileInfo = null;
 
-    public function __construct(protected readonly PackageResourceIdentifier $identifier) {}
+    public function __construct(
+        protected readonly PackageResourceIdentifier $identifier,
+        protected readonly ResourceDefinitionInterface $resourceDefinition,
+    ) {}
 
     public function getName(): string
     {

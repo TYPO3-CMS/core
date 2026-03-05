@@ -41,24 +41,37 @@ final readonly class SymlinkPublisher implements FileSystemPublisherInterface
 
     public function publishFolder(string $source, string $target): void
     {
-        $this->ensureSymlinkExists($source, $target);
+        $this->ensureSymlinkExists($source, $target, 'dir');
     }
 
     public function publishFile(string $source, string $target): void
     {
-        $this->ensureSymlinkExists($source, $target);
+        $this->ensureSymlinkExists($source, $target, 'file');
     }
 
     /**
      * @throws PackageAssetsPublishingFailedException
      */
-    private function ensureSymlinkExists(string $target, string $link): void
+    private function ensureSymlinkExists(string $target, string $link, string $type): void
     {
         $success = true;
-        if (!$this->fileSystem->isSymlinkedDirectory($link)) {
+        if (!$this->isSymlinked($link, $type)) {
             $success = $this->fileSystem->relativeSymlink($target, $link);
         }
+        $this->ensureIsValid($target, $link, $success);
+    }
 
+    private function isSymlinked(string $link, string $type): bool
+    {
+        return match ($type) {
+            'file' => $this->fileSystem->isSymlinkedFile($link),
+            'dir' => $this->fileSystem->isSymlinkedDirectory($link),
+            default => throw new \UnexpectedValueException(sprintf('Type can only be "file" or "dir", "%s" given.', $type), 1774611766),
+        };
+    }
+
+    private function ensureIsValid(string $target, string $link, bool $success): void
+    {
         if (!$success || realpath($target) !== realpath($link)) {
             throw new PackageAssetsPublishingFailedException(
                 'symlink',

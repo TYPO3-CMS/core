@@ -17,19 +17,22 @@ declare(strict_types=1);
 
 namespace TYPO3\CMS\Core\Package\Resource;
 
+use TYPO3\CMS\Core\Package\Resource\Definition\PublicResourceDefinition;
+use TYPO3\CMS\Core\Package\Resource\Definition\ResourceDefinitionInterface;
+
 /**
  * @internal This is subject to change during v14 development. Do not use.
  */
 interface ResourceCollectionInterface
 {
-    /**
-     * @internal Only to be used in TYPO3\CMS\Core\SystemResource and TYPO3\CMS\Core\Package\Resource namespaces
-     */
-    public const PACKAGE_DEFAULT_PUBLIC_DIR = 'Resources/Public';
-
     public function isPublicPath(string $relativePath): bool;
 
-    public function isValidPath(string $relativePath): bool;
+    public function definitionForPath(string $relativePath): ResourceDefinitionInterface;
 
     public function getPackageIcon(): ?string;
+
+    /**
+     * @return PublicResourceDefinition[]
+     */
+    public function getPublicResourceDefinitions(): array;
 }

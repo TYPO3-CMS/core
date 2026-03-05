@@ -22,11 +22,9 @@ use Psr\Http\Message\UriInterface;
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Http\ApplicationType;
 use TYPO3\CMS\Core\Http\Uri;
-use TYPO3\CMS\Core\Package\Resource\ResourceCollectionInterface;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\SystemResource\Exception\CanNotGenerateUriException;
 use TYPO3\CMS\Core\SystemResource\Http\CacheBustingUri;
-use TYPO3\CMS\Core\SystemResource\Type\PublicResourceInterface;
 
 /**
  * This is tightly coupled to DefaultSystemResourcePublisher and acts
@@ -45,16 +43,15 @@ readonly class DefaultSystemResourceUriGenerator implements SystemResourceUriGen
         private UriGenerationOptions $options,
     ) {}
 
-    public function generateForPublicResourceBasedOnAbsolutePath(
-        PublicResourceInterface $resource,
-        string $absoluteResourcePath,
+    public function generateForPackageResource(
+        ResourceUriBuildingContext $context,
     ): UriInterface {
-        $uri = $this->makeAbsolute(new Uri($this->calculateUriPath($absoluteResourcePath)));
+        $uri = $this->makeAbsolute(new Uri($this->calculateUriPath($context)));
         if (!$this->options->cacheBusting) {
             return $uri;
         }
         return CacheBustingUri::fromFileSystemPath(
-            $absoluteResourcePath,
+            $context->absoluteResourcePath,
             $uri,
             $this->request ? ApplicationType::fromRequest($this->request) : null
         );
@@ -97,16 +94,11 @@ readonly class DefaultSystemResourceUriGenerator implements SystemResourceUriGen
             ->withPort($siteUri->getPort());
     }
 
-    private function calculateUriPath(string $absoluteResourcePath): string
+    private function calculateUriPath(ResourceUriBuildingContext $context): string
     {
-        if (str_starts_with($absoluteResourcePath, Environment::getPublicPath())) {
-            return $this->prefix . substr($absoluteResourcePath, strlen(Environment::getPublicPath()) + 1);
+        if ($context->isSourcePublic) {
+            return $this->prefix . substr($context->absoluteResourcePath, strlen(Environment::getPublicPath()) + 1);
         }
-        [$relativePrefix, $relativeAssetPath] = explode(
-            ResourceCollectionInterface::PACKAGE_DEFAULT_PUBLIC_DIR,
-            substr($absoluteResourcePath, strlen(Environment::getProjectPath())),
-            2
-        );
-        return $this->prefix . $this->publishingDirectory . md5($relativePrefix) . $relativeAssetPath;
+        return $this->prefix . $this->publishingDirectory . $context->uriPath;
     }
 }

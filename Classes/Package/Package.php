@@ -220,7 +220,36 @@ class Package implements PackageInterface
 
     protected function createResources(): void
     {
-        $this->resources = new ResourceCollection($this);
+        $relativeIconPath = $this->getPackageIcon();
+        $iconIdentifier = $relativeIconPath !== null ? sprintf(
+            'PKG:%s:%s',
+            $this->getValueFromComposerManifest('name') ?? $this->getPackageKey(),
+            $relativeIconPath,
+        ) : null;
+        $resourceDefinitionClosure = $this->getResourceDefinitions(
+            __DIR__ . '/../../Configuration/DefaultPackageResources.php'
+        );
+        $customResourceDefinitionClosure = $this->getResourceDefinitions(
+            $this->getPackagePath() . 'Configuration/Resources.php'
+        );
+        $resourceDefinitions = array_merge(
+            $resourceDefinitionClosure($this),
+            $customResourceDefinitionClosure === null ? [] : $customResourceDefinitionClosure($this),
+        );
+        $this->resources = new ResourceCollection(
+            $resourceDefinitions,
+            $iconIdentifier,
+        );
+    }
+
+    protected function getResourceDefinitions(string $configPath): ?\Closure
+    {
+        if (!file_exists($configPath)) {
+            return null;
+        }
+        return (static function ($configPath) {
+            return require $configPath;
+        })($configPath);
     }
 
     public function getResources(): ResourceCollectionInterface

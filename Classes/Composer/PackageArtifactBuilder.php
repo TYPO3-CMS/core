@@ -101,7 +101,6 @@ class PackageArtifactBuilder extends PackageManager implements InstallerScript
         $this->sortPackagesAndConfiguration();
         $appPackage = new VirtualAppPackage(
             $this,
-            VirtualAppPackage::APP_PACKAGE_KEY,
             $this->packagesBasePath,
             rtrim($this->config->get('web-dir', $this->config::RELATIVE_PATHS), '/') . '/',
         );
@@ -109,6 +108,7 @@ class PackageArtifactBuilder extends PackageManager implements InstallerScript
         $this->packageStatesConfiguration['packages'][$appPackage->getPackageKey()] = [];
         $cacheIdentifier = md5(serialize($composer->getLocker()->getLockData()) . $this->event->isDevMode());
         $this->setPackageCache(new ComposerPackageArtifact($composer->getConfig()->get('vendor-dir') . '/typo3', $this->fileSystem, $cacheIdentifier));
+        $this->validateResources();
         $this->saveToPackageCache();
 
         return true;

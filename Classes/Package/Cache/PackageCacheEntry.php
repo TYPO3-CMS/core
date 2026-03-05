@@ -19,13 +19,8 @@ namespace TYPO3\CMS\Core\Package\Cache;
 
 use TYPO3\CMS\Core\Package\Exception\PackageManagerCacheUnavailableException;
 use TYPO3\CMS\Core\Package\Exception\PackageStatesUnavailableException;
-use TYPO3\CMS\Core\Package\MetaData;
-use TYPO3\CMS\Core\Package\MetaData\PackageConstraint;
-use TYPO3\CMS\Core\Package\Package;
 use TYPO3\CMS\Core\Package\PackageInterface;
-use TYPO3\CMS\Core\Package\Resource\ResourceCollection;
-use TYPO3\CMS\Core\Package\VirtualAppPackage;
-use TYPO3\CMS\Core\SystemResource\Package\AppResourceCollection;
+use TYPO3\CMS\Core\Serializer\PolymorphicDeserializer;
 
 /**
  * A TYPO3 Package cache entry.
@@ -114,21 +109,22 @@ class PackageCacheEntry
             // Invalidate the cache entry
             throw new PackageManagerCacheUnavailableException('The package state cache could not be loaded.', 1393883341, $e);
         }
+        // Package objects can now contain classes from userland.
+        // We nevertheless restrict the unserialize call here to classes,
+        // that have been identified during caching.
+        // Yes, this list of classes could be tainted, but then, why not taint,
+        // the complete cache file directly? A tainted list of class names isn't
+        // really less obvious than other PHP code in the cache file.
         $cacheEntry = new self(
             $packageData['packageStatesConfiguration'],
             $packageData['packageAliasMap'],
             $packageData['composerNameToPackageKeyMap'],
-            unserialize($packageData['packageObjects'], [
-                'allowed_classes' => [
-                    Package::class,
-                    ResourceCollection::class,
-                    AppResourceCollection::class,
-                    VirtualAppPackage::class,
-                    MetaData::class,
-                    PackageConstraint::class,
-                    \stdClass::class,
+            unserialize(
+                $packageData['packageObjects'],
+                [
+                    'allowed_classes' => $packageData['packageClasses'],
                 ],
-            ])
+            ),
         );
         $cacheEntry->identifier = $packageData['identifier'] ?? null;
 
@@ -137,13 +133,16 @@ class PackageCacheEntry
 
     public function serialize(): string
     {
+        $serializedPackages = serialize($this->packages);
+        $deserializer = new PolymorphicDeserializer();
         return var_export(
             [
                 'identifier' => $this->identifier,
                 'packageStatesConfiguration' => $this->configuration,
                 'packageAliasMap' => $this->aliasMap,
                 'composerNameToPackageKeyMap' => $this->composerNameMap,
-                'packageObjects' => serialize($this->packages),
+                'packageObjects' => $serializedPackages,
+                'packageClasses' => $deserializer->parseClassNames($serializedPackages),
             ],
             true
         );

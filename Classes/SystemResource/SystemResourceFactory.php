@@ -20,6 +20,7 @@ namespace TYPO3\CMS\Core\SystemResource;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Http\Uri;
+use TYPO3\CMS\Core\Package\Resource\Definition\PublicResourceDefinition;
 use TYPO3\CMS\Core\Package\VirtualAppPackage;
 use TYPO3\CMS\Core\Resource\Exception as FalException;
 use TYPO3\CMS\Core\Resource\File;
@@ -205,9 +206,10 @@ readonly class SystemResourceFactory
 
     private function createFromPackageIdentifier(PackageResourceIdentifier $packageIdentifier): SystemResourceInterface
     {
-        if ($packageIdentifier->getPackage()->getResources()->isPublicPath($packageIdentifier->getRelativePath())) {
-            return new PublicPackageFile($packageIdentifier);
+        $resourceDefinition = $packageIdentifier->getPackage()->getResources()->definitionForPath($packageIdentifier->getRelativePath());
+        if ($resourceDefinition instanceof PublicResourceDefinition) {
+            return new PublicPackageFile($packageIdentifier, $resourceDefinition);
         }
-        return new PackageResource($packageIdentifier);
+        return new PackageResource($packageIdentifier, $resourceDefinition);
     }
 }

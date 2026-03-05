@@ -111,6 +111,17 @@ class FileSystem
     }
 
     /**
+     * Return true if that file is a symlink.
+     */
+    public function isSymlinkedFile(string $file): bool
+    {
+        if (!is_file($file)) {
+            return false;
+        }
+        return is_link($file);
+    }
+
+    /**
      * Creates an NTFS junction.
      */
     public function junction(string $target, string $junction): void

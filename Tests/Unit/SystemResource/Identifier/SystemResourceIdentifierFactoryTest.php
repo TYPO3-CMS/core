@@ -93,7 +93,7 @@ final class SystemResourceIdentifierFactoryTest extends UnitTestCase
             ->willReturn('typo3/cms-' . $packageKey);
         $package
             ->method('getResources')
-            ->willReturn(new ResourceCollection($package));
+            ->willReturn(new ResourceCollection());
         $packageManager
             ->method('getPackage')
             ->willReturn($package);
@@ -180,7 +180,7 @@ final class SystemResourceIdentifierFactoryTest extends UnitTestCase
             ->willReturn('typo3/cms-core');
         $package
             ->method('getResources')
-            ->willReturn(new ResourceCollection($package));
+            ->willReturn(new ResourceCollection());
         $packageManager
             ->method('getPackage')
             ->with('core')
