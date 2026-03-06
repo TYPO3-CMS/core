@@ -222,7 +222,7 @@ class AuthenticationService extends AbstractAuthenticationService implements Mim
         if (!empty($params)) {
             $message = vsprintf($message, $params);
         }
-        $message = str_replace('###IP###', (string)GeneralUtility::getIndpEnv('REMOTE_ADDR'), $message);
+        $message = str_replace('###IP###', (string)($this->authInfo['REMOTE_ADDR'] ?? ''), $message);
         if ($this->pObj->loginType === 'FE') {
             $timeTracker = GeneralUtility::makeInstance(TimeTracker::class);
             $timeTracker->setTSlogMessage($message, LogLevel::INFO);

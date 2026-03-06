@@ -21,6 +21,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Expression\CompositeExpression;
+use TYPO3\CMS\Core\Http\NormalizedParams;
 use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Session\UserSession;
 use TYPO3\CMS\Core\Tests\Functional\Authentication\Fixtures\AnyUserAuthentication;
@@ -81,7 +82,9 @@ final class AbstractUserAuthenticationTest extends FunctionalTestCase
         $subject = new AnyUserAuthentication($userSession);
         $subject->user_table = 'be_users';
         $subject->checkPid_value = $checkPid_value;
-        $authInfoArray = $subject->getAuthInfoArray(new ServerRequest('https://example.com'));
+        $request = new ServerRequest('https://example.com');
+        $request = $request->withAttribute('normalizedParams', NormalizedParams::createFromServerParams($request->getServerParams()));
+        $authInfoArray = $subject->getAuthInfoArray($request);
         $enableClause = $authInfoArray['db_user']['enable_clause'];
         self::assertInstanceOf(CompositeExpression::class, $enableClause);
         $connection = $this->get(ConnectionPool::class)->getConnectionForTable('be_users');

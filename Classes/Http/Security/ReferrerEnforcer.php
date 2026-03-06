@@ -20,7 +20,6 @@ namespace TYPO3\CMS\Core\Http\Security;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Http\HtmlResponse;
-use TYPO3\CMS\Core\Http\NormalizedParams;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\ConsumableNonce;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Directive;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -120,19 +119,11 @@ class ReferrerEnforcer
 
     protected function resolveRequestHost(ServerRequestInterface $request): string
     {
-        $normalizedParams = $request->getAttribute('normalizedParams');
-        if ($normalizedParams instanceof NormalizedParams) {
-            return $normalizedParams->getRequestHost();
-        }
-        return GeneralUtility::getIndpEnv('TYPO3_REQUEST_HOST');
+        return $request->getAttribute('normalizedParams')->getRequestHost();
     }
 
     protected function resolveRequestDir(ServerRequestInterface $request): string
     {
-        $normalizedParams = $request->getAttribute('normalizedParams');
-        if ($normalizedParams instanceof NormalizedParams) {
-            return $normalizedParams->getRequestDir();
-        }
-        return GeneralUtility::getIndpEnv('TYPO3_REQUEST_DIR');
+        return $request->getAttribute('normalizedParams')->getRequestDir();
     }
 }

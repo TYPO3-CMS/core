@@ -2080,7 +2080,7 @@ class BackendUserAuthentication extends AbstractUserAuthentication
                     // If user is system maintainer, destroy its possibly valid install tool session.
                     $session = GeneralUtility::makeInstance(SessionService::class);
                     // @todo: It's kinda fishy installSessionHandler() is called here. We should be able to skip this.
-                    $session->installSessionHandler();
+                    $session->installSessionHandler($GLOBALS['TYPO3_REQUEST'] ?? null);
                     $session->destroySession($GLOBALS['TYPO3_REQUEST'] ?? null);
                 }
             }

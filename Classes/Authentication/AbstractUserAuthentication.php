@@ -591,12 +591,12 @@ abstract class AbstractUserAuthentication implements LoggerAwareInterface
                 }
                 $this->logger->info('User {username} logged in from {ip}', [
                     'username' => $userRecordCandidate[$this->username_column],
-                    'ip' => GeneralUtility::getIndpEnv('REMOTE_ADDR'),
+                    'ip' => $request->getAttribute('normalizedParams')->getRemoteAddress(),
                 ]);
             } else {
                 $this->logger->debug('User {username} authenticated from {ip}', [
                     'username' => $userRecordCandidate[$this->username_column],
-                    'ip' => GeneralUtility::getIndpEnv('REMOTE_ADDR'),
+                    'ip' => $request->getAttribute('normalizedParams')->getRemoteAddress(),
                 ]);
             }
             // Check if multi-factor authentication is required
@@ -1170,10 +1170,11 @@ abstract class AbstractUserAuthentication implements LoggerAwareInterface
         $authInfo = [];
         $authInfo['loginType'] = $this->loginType;
         $authInfo['request'] = $request;
-        $authInfo['refInfo'] = parse_url(GeneralUtility::getIndpEnv('HTTP_REFERER'));
-        $authInfo['HTTP_HOST'] = GeneralUtility::getIndpEnv('HTTP_HOST');
-        $authInfo['REMOTE_ADDR'] = GeneralUtility::getIndpEnv('REMOTE_ADDR');
-        $authInfo['REMOTE_HOST'] = GeneralUtility::getIndpEnv('REMOTE_HOST');
+        $normalizedParams = $request->getAttribute('normalizedParams');
+        $authInfo['refInfo'] = $normalizedParams ? parse_url($normalizedParams->getHttpReferer()) : null;
+        $authInfo['HTTP_HOST'] = $normalizedParams?->getHttpHost();
+        $authInfo['REMOTE_ADDR'] = $normalizedParams?->getRemoteAddress();
+        $authInfo['REMOTE_HOST'] = $normalizedParams?->getRemoteHost();
         // Can be overridden in localconf by SVCONF:
         $authInfo['db_user']['table'] = $this->user_table;
         $authInfo['db_user']['userid_column'] = $this->userid_column;
