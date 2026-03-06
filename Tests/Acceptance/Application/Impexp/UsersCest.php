@@ -34,7 +34,7 @@ final class UsersCest extends AbstractCest
     private string $contextMenuExport = 'button[data-contextmenu-id="root_more_exportT3d"]';
     private string $contextMenuImport = 'button[data-contextmenu-id="root_more_importT3d"]';
     private string $buttonViewPage = 'span[data-identifier="actions-view-page"]';
-    private string $tabUpload = 'button[data-bs-target="#import-upload"]';
+    private string $tabUpload = 'button[data-typo3-tab="#import-upload"]';
     private string $checkboxForceAllUids = 'input#checkForce_all_UIDS';
 
     public function _before(ApplicationTester $I): void

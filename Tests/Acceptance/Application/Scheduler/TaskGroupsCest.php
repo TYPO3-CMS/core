@@ -54,7 +54,7 @@ final class TaskGroupsCest
         $I->executeJS("document.querySelector('" . ModalDialog::$openedModalSelector . " typo3-backend-new-record-wizard').shadowRoot.querySelector('[data-identifier=\"scheduler_TYPO3_CMS_Scheduler_Task_RecyclerGarbageCollectionTask\"]').click()");
         $I->switchToContentFrame();
         // second item on first tab (see fieldset)
-        $fieldset = 'div.typo3-TCEforms > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > fieldset:nth-of-type(2)';
+        $fieldset = '.tab-pane.active > fieldset:nth-of-type(2)';
         $formWizardsWrap = $fieldset . ' > div:nth-of-type(1) div.t3js-formengine-field-item > div.form-wizards-wrap';
         $select = $formWizardsWrap . ' > div:nth-of-type(1) > select';
         $I->seeOptionIsSelected($select, $this->groupName . ' [tx_scheduler_task_group_1]');

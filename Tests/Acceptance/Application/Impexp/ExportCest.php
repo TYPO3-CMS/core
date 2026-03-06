@@ -117,7 +117,7 @@ final class ExportCest extends AbstractCest
         $pageTitle = 'staticdata';
         $exportPageTitle = 'Export pagetree configuration';
         $pageIcon = '//*[text()=\'' . $pageTitle . '\']/../../*[contains(@class, \'node-icon\')]';
-        $tabExport = 'button[data-bs-target="#export-filepreset"]';
+        $tabExport = 'button[data-typo3-tab="#export-filepreset"]';
         $contentExport = '#export-filepreset';
         $presetTitle = 'My First Preset';
         $inputPresetTitle = 'input[name="tx_impexp[preset][title]"]';
@@ -171,7 +171,7 @@ final class ExportCest extends AbstractCest
         $pageTitle = 'staticdata';
         $exportPageTitle = 'Export pagetree configuration';
         $pageIcon = '//*[text()=\'' . $pageTitle . '\']/../../*[contains(@class, \'node-icon\')]';
-        $tabExport = 'button[data-bs-target="#export-filepreset"]';
+        $tabExport = 'button[data-typo3-tab="#export-filepreset"]';
         $contentExport = '#export-filepreset';
         $buttonSaveToFile = 'tx_impexp[save_export]';
 
@@ -203,7 +203,7 @@ final class ExportCest extends AbstractCest
         $rootPageTitle = 'New TYPO3 site';
         $beUsergroupTableTitle = 'Backend usergroup';
         $listModuleBtnExport = 'a[title="Export"]';
-        $tabExport = 'button[data-bs-target="#export-filepreset"]';
+        $tabExport = 'button[data-typo3-tab="#export-filepreset"]';
         $contentExport = '#export-filepreset';
         $buttonSaveToFile = 'tx_impexp[save_export]';
 
@@ -238,7 +238,7 @@ final class ExportCest extends AbstractCest
         $rootPageTitle = 'New TYPO3 site';
         $sysLanguageTable = '#recordlist-be_groups';
         $sysLanguageIcon = 'tr:first-child button[data-contextmenu-trigger]';
-        $tabExport = 'button[data-bs-target="#export-filepreset"]';
+        $tabExport = 'button[data-typo3-tab="#export-filepreset"]';
         $contentExport = '#export-filepreset';
         $buttonSaveToFile = 'tx_impexp[save_export]';
 

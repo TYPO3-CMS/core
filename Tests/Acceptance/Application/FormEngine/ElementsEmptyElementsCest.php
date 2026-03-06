@@ -48,6 +48,7 @@ final class ElementsEmptyElementsCest extends AbstractElementsBasicCest
         $I->waitForText('Edit Form', 3, 'h1');
 
         // Make sure the test operates on the "radio" tab
+        $I->executeJS('[...document.querySelectorAll("form [role=tabpanel] [role=tab]")].filter(node => node.innerText === "radio").forEach(node => node.scrollIntoViewIfNeeded())');
         $I->click('radio');
     }
 

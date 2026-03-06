@@ -39,7 +39,7 @@ final class LinkBrowserCest
         $I->click('#t3-table-tx_styleguide_elements_basic a[aria-label="Edit record"]');
         $I->waitForText('Edit Form', 3, 'h1');
 
-        $I->click('link', '.t3js-tabs');
+        $I->click('link', '[role="tablist"]');
     }
 
     public function closeLinkBrowserInIframeOneEscapeKey(ApplicationTester $I): void

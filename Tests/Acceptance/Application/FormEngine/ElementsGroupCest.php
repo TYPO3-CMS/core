@@ -47,7 +47,7 @@ final class ElementsGroupCest
 
     public function sortElementsInGroup(ApplicationTester $I): void
     {
-        $fieldset = 'div.typo3-TCEforms > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > fieldset:nth-of-type(1)';
+        $fieldset = '.tab-pane.active > fieldset:nth-of-type(1)';
         $formWizardsWrap = $fieldset . ' > div:nth-of-type(1) div.t3js-formengine-field-item > div:nth-of-type(2)';
         $select = $formWizardsWrap . ' > div:nth-of-type(2) > select';
 
@@ -89,7 +89,7 @@ final class ElementsGroupCest
 
     public function sortElementsInGroupWithArrowAndAltKeys(ApplicationTester $I): void
     {
-        $fieldset = 'div.typo3-TCEforms > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > fieldset:nth-of-type(1)';
+        $fieldset = '.tab-pane.active > fieldset:nth-of-type(1)';
         $formWizardsWrap = $fieldset . ' > div:nth-of-type(1) div.t3js-formengine-field-item > div:nth-of-type(2)';
         $select = $formWizardsWrap . ' > div:nth-of-type(2) > select';
 
@@ -131,7 +131,7 @@ final class ElementsGroupCest
 
     public function removeElementInGroupWithDeleteKey(ApplicationTester $I): void
     {
-        $fieldset = 'div.typo3-TCEforms > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > fieldset:nth-of-type(1)';
+        $fieldset = '.tab-pane.active > fieldset:nth-of-type(1)';
         $formWizardsWrap = $fieldset . ' > div:nth-of-type(1) div.t3js-formengine-field-item > div:nth-of-type(2)';
         $select = $formWizardsWrap . ' > div:nth-of-type(2) > select';
 
@@ -152,7 +152,7 @@ final class ElementsGroupCest
 
     public function addARecordWithRecordBrowserGroup(ApplicationTester $I): void
     {
-        $fieldset = 'div.typo3-TCEforms > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > fieldset:nth-of-type(1)';
+        $fieldset = '.tab-pane.active > fieldset:nth-of-type(1)';
         $formWizardsWrap = $fieldset . ' > div:nth-of-type(1) div.t3js-formengine-field-item > div:nth-of-type(2)';
 
         $I->seeNumberOfElements('select[data-formengine-input-name="data[tx_styleguide_elements_group][1][group_db_1]"] option', 4);
@@ -171,7 +171,7 @@ final class ElementsGroupCest
 
     public function addTwoRecordWithRecordBrowserGroup(ApplicationTester $I): void
     {
-        $fieldset = 'div.typo3-TCEforms > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > fieldset:nth-of-type(1)';
+        $fieldset = '.tab-pane.active > fieldset:nth-of-type(1)';
         $formWizardsWrap = $fieldset . ' > div:nth-of-type(1) div.t3js-formengine-field-item > div:nth-of-type(2)';
 
         $I->seeNumberOfElements('select[data-formengine-input-name="data[tx_styleguide_elements_group][1][group_db_1]"] option', 4);
@@ -192,7 +192,7 @@ final class ElementsGroupCest
 
     public function searchForARecordWithRecordBrowserGroup(ApplicationTester $I): void
     {
-        $fieldset = 'div.typo3-TCEforms > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > fieldset:nth-of-type(1)';
+        $fieldset = '.tab-pane.active > fieldset:nth-of-type(1)';
         $formWizardsWrap = $fieldset . ' > div:nth-of-type(1) div.t3js-formengine-field-item > div:nth-of-type(2)';
 
         $I->seeNumberOfElements('select[data-formengine-input-name="data[tx_styleguide_elements_group][1][group_db_1]"] option', 4);
