@@ -22,6 +22,9 @@ use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
 use TYPO3\CMS\Core\Http\Client\GuzzleClientFactory;
 use TYPO3\CMS\Core\Http\Uri;
+use TYPO3\CMS\Core\SystemResource\SystemResourceFactory;
+use TYPO3\CMS\Core\SystemResource\Type\StaticResourceInterface;
+use TYPO3\CMS\Core\SystemResource\Type\SystemResourceInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -35,10 +38,17 @@ final class HashProxy implements \JsonSerializable, SourceValueInterface
     private HashType $type = HashType::sha256;
     private ?string $glob = null;
     /**
-     * @var list<string>
+     * @var list<string>|null system resource identifiers
+     */
+    private ?array $resources = null;
+    /**
+     * @var list<string>|null
      */
     private ?array $urls = null;
 
+    /**
+     * @param string $glob e.g. 'EXT:core/Tests/Unit/Security/ContentSecurityPolicy/Fixtures/*.js'
+     */
     public static function glob(string $glob): self
     {
         $pattern = GeneralUtility::getFileAbsFileName($glob);
@@ -48,6 +58,17 @@ final class HashProxy implements \JsonSerializable, SourceValueInterface
         }
         $target = new self();
         $target->glob = $glob;
+        return $target;
+    }
+
+    /**
+     * @param string ...$resources system resource identifiers
+     * @see SystemResourceFactory
+     */
+    public static function resource(string ...$resources): self
+    {
+        $target = new self();
+        $target->resources = $resources;
         return $target;
     }
 
@@ -84,6 +105,8 @@ final class HashProxy implements \JsonSerializable, SourceValueInterface
         $properties = json_decode($value, true, 4, JSON_THROW_ON_ERROR);
         if (!empty($properties['glob'])) {
             $target = self::glob($properties['glob']);
+        } elseif (!empty($properties['resources'])) {
+            $target = self::resource(...$properties['resources']);
         } elseif (!empty($properties['urls'])) {
             $target = self::urls(...$properties['urls']);
         } else {
@@ -104,7 +127,7 @@ final class HashProxy implements \JsonSerializable, SourceValueInterface
 
     public function isEmpty(): bool
     {
-        return $this->glob === null && $this->urls === null;
+        return $this->glob === null && $this->resources === null && $this->urls === null;
     }
 
     public function compile(?FrontendInterface $cache = null): ?string
@@ -116,7 +139,7 @@ final class HashProxy implements \JsonSerializable, SourceValueInterface
             fn(string $hash): string => sprintf("'%s-%s'", $this->type->value, $hash),
             $this->compileHashValues($cache)
         );
-        return implode(' ', $hashes);
+        return implode(' ', array_unique($hashes));
     }
 
     public function serialize(): ?string
@@ -129,11 +152,12 @@ final class HashProxy implements \JsonSerializable, SourceValueInterface
 
     public function jsonSerialize(): mixed
     {
-        return [
+        return array_filter([
             'type' => $this->type,
             'glob' => $this->glob,
+            'resources' => $this->resources,
             'urls' => $this->urls,
-        ];
+        ]);
     }
 
     /**
@@ -161,6 +185,23 @@ final class HashProxy implements \JsonSerializable, SourceValueInterface
                 $files
             );
         }
+        if ($this->resources !== null) {
+            $systemResourceFactory = GeneralUtility::makeInstance(SystemResourceFactory::class);
+            $resources = array_map(
+                static fn(string $resource): StaticResourceInterface => $systemResourceFactory->createResource($resource),
+                $this->resources
+            );
+            $resources = array_filter(
+                $resources,
+                static fn(StaticResourceInterface $resource): bool => $resource instanceof SystemResourceInterface
+            );
+            return array_map(
+                fn(SystemResourceInterface $resource): string => base64_encode(
+                    hash($this->type->value, $resource->getContents(), true)
+                ),
+                $resources
+            );
+        }
         if ($this->urls !== null) {
             $hashes = [];
             $urls = $this->urls;
@@ -169,7 +210,7 @@ final class HashProxy implements \JsonSerializable, SourceValueInterface
                 $urls = [];
                 $identifiers = [];
                 foreach ($this->urls as $url) {
-                    $identifiers[$url] = 'CspHashProxyUrl_' . sha1(json_encode([$this->type, $url]));
+                    $identifiers[$url] = 'CspHashProxyUrl_' . hash('xxh128', (json_encode([$this->type, $url])));
                     $cachedHash = $cache->get($identifiers[$url]);
                     if ($cachedHash === false) {
                         // fetch content of URL & generate hash

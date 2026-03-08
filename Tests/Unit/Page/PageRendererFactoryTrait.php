@@ -34,6 +34,7 @@ use TYPO3\CMS\Core\MetaTag\MetaTagManagerRegistry;
 use TYPO3\CMS\Core\Package\PackageManager;
 use TYPO3\CMS\Core\Page\AssetCollector;
 use TYPO3\CMS\Core\Page\AssetRenderer;
+use TYPO3\CMS\Core\Page\ResourceHashCollection;
 use TYPO3\CMS\Core\Resource\RelativeCssPathFixer;
 use TYPO3\CMS\Core\Service\DependencyOrderingService;
 use TYPO3\CMS\Core\Service\MarkerBasedTemplateService;
@@ -65,7 +66,7 @@ trait PageRendererFactoryTrait
                 new NullFrontend('runtime'),
             ),
             new MetaTagManagerRegistry(),
-            new AssetRenderer(new AssetCollector(), new NoopEventDispatcher(), $resourcePublisher, $resourceFactory),
+            new AssetRenderer(new AssetCollector(), new NoopEventDispatcher(), $resourcePublisher, $resourceFactory, $this->createMock(ResourceHashCollection::class)),
             new AssetCollector(),
             new RelativeCssPathFixer(),
             new LanguageServiceFactory(

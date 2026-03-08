@@ -33,6 +33,7 @@ use TYPO3\CMS\Core\MetaTag\MetaTagManagerRegistry;
 use TYPO3\CMS\Core\Page\AssetCollector;
 use TYPO3\CMS\Core\Page\AssetRenderer;
 use TYPO3\CMS\Core\Page\PageRenderer;
+use TYPO3\CMS\Core\Page\ResourceHashCollection;
 use TYPO3\CMS\Core\Resource\RelativeCssPathFixer;
 use TYPO3\CMS\Core\Resource\StorageRepository;
 use TYPO3\CMS\Core\Service\MarkerBasedTemplateService;
@@ -76,6 +77,7 @@ final class PageRendererTest extends FunctionalTestCase
             $this->get(IconRegistry::class),
             $this->get(SystemResourcePublisherInterface::class),
             $this->get(SystemResourceFactory::class),
+            $this->get(ResourceHashCollection::class),
         );
     }
 

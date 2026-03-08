@@ -26,6 +26,7 @@ use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Directive;
 use TYPO3\CMS\Core\SystemResource\Publishing\SystemResourcePublisherInterface;
 use TYPO3\CMS\Core\SystemResource\SystemResourceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\PathUtility;
 
 /**
  * @internal The AssetRenderer is used for the asset rendering and is not public API
@@ -38,6 +39,7 @@ readonly class AssetRenderer
         protected EventDispatcherInterface $eventDispatcher,
         protected SystemResourcePublisherInterface $resourcePublisher,
         protected SystemResourceFactory $systemResourceFactory,
+        protected ResourceHashCollection $resourceHashCollection,
     ) {}
 
     public function renderInlineJavaScript($priority = false, ?ConsumableNonce $nonce = null): string
@@ -86,9 +88,21 @@ readonly class AssetRenderer
         $template = '<link%attributes% ' . $endingSlash . '>';
         $assets = $this->assetCollector->getStyleSheets($priority);
         foreach ($assets as &$assetData) {
+            $originalSource = $assetData['source'];
             $assetData['source'] = $this->getAbsoluteWebPath($assetData['source']);
             $assetData['attributes']['href'] = $assetData['source'];
             $assetData['attributes']['rel'] = $assetData['attributes']['rel'] ?? 'stylesheet';
+            if (($assetData['attributes']['integrity'] ?? '') === ResourceHashCollection::AUTO) {
+                $hash = $this->resourceHashCollection->fetchResourceHash($originalSource)?->export() ?? '';
+                if ($hash !== '') {
+                    $assetData['attributes']['integrity'] = $hash;
+                    if (empty($assetData['attributes']['crossorigin']) && PathUtility::hasProtocolAndScheme($originalSource)) {
+                        $assetData['attributes']['crossorigin'] = 'anonymous';
+                    }
+                } else {
+                    unset($assetData['attributes']['integrity']);
+                }
+            }
         }
         return $this->render($assets, $template, false, Directive::StyleSrcElem, $nonce);
     }

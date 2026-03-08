@@ -135,6 +135,7 @@ class PageRenderer implements SingletonInterface
         protected readonly IconRegistry $iconRegistry,
         protected readonly SystemResourcePublisherInterface $resourcePublisher,
         protected readonly SystemResourceFactory $systemResourceFactory,
+        protected readonly ResourceHashCollection $resourceHashCollection,
     ) {
         $this->locale = new Locale();
         $this->docType = DocType::html5;
@@ -174,6 +175,7 @@ class PageRenderer implements SingletonInterface
                 case 'iconRegistry':
                 case 'resourcePublisher':
                 case 'systemResourceFactory':
+                case 'resourceHashCollection':
                 case 'nonce':
                     break;
                 case 'metaTagRegistry':
@@ -209,6 +211,7 @@ class PageRenderer implements SingletonInterface
                 case 'resourcePublisher':
                 case 'nonce':
                 case 'systemResourceFactory':
+                case 'resourceHashCollection':
                     break;
                 case 'metaTagRegistry':
                     $state[$var] = $this->metaTagRegistry->getState();
@@ -650,6 +653,9 @@ class PageRenderer implements SingletonInterface
         if ($type === null) {
             $type = $this->docType === DocType::html5 ? '' : 'text/javascript';
         }
+        if ($integrity === ResourceHashCollection::AUTO) {
+            $integrity = $this->resourceHashCollection->fetchResourceHash($resource)?->export() ?? '';
+        }
         if ($crossorigin === '' && $integrity !== '' && $isUriResource) {
             $crossorigin = 'anonymous';
         }
@@ -693,6 +699,9 @@ class PageRenderer implements SingletonInterface
         $isUriResource = $resource instanceof UriResource;
         if ($type === null) {
             $type = $this->docType === DocType::html5 ? '' : 'text/javascript';
+        }
+        if ($integrity === ResourceHashCollection::AUTO) {
+            $integrity = $this->resourceHashCollection->fetchResourceHash($resource)?->export() ?? '';
         }
         if ($crossorigin === '' && $integrity !== '' && $isUriResource) {
             $crossorigin = 'anonymous';
@@ -739,6 +748,9 @@ class PageRenderer implements SingletonInterface
         if ($type === null) {
             $type = $this->docType === DocType::html5 ? '' : 'text/javascript';
         }
+        if ($integrity === ResourceHashCollection::AUTO) {
+            $integrity = $this->resourceHashCollection->fetchResourceHash($resource)?->export() ?? '';
+        }
         if ($crossorigin === '' && $integrity !== '' && $isUriResource) {
             $crossorigin = 'anonymous';
         }
@@ -782,6 +794,9 @@ class PageRenderer implements SingletonInterface
         $isUriResource = $resource instanceof UriResource;
         if ($type === null) {
             $type = $this->docType === DocType::html5 ? '' : 'text/javascript';
+        }
+        if ($integrity === ResourceHashCollection::AUTO) {
+            $integrity = $this->resourceHashCollection->fetchResourceHash($resource)?->export() ?? '';
         }
         if ($crossorigin === '' && $integrity !== '' && $isUriResource) {
             $crossorigin = 'anonymous';
@@ -854,10 +869,19 @@ class PageRenderer implements SingletonInterface
      * @param string $splitChar The char used to split the allWrap value, default is "|"
      * @param bool $inline
      * @param array<string, string> $tagAttributes Key => value list of tag attributes
+     * @param string $integrity Subresource Integrity (SRI)
+     * @param string $crossorigin CORS settings attribute
      */
-    public function addCssFile($file, $rel = 'stylesheet', $media = 'all', $title = '', mixed $_ = null, $forceOnTop = false, $allWrap = '', mixed $__ = null, $splitChar = '|', $inline = false, array $tagAttributes = []): void
+    public function addCssFile($file, $rel = 'stylesheet', $media = 'all', $title = '', mixed $_ = null, $forceOnTop = false, $allWrap = '', mixed $__ = null, $splitChar = '|', $inline = false, array $tagAttributes = [], string $integrity = '', string $crossorigin = ''): void
     {
         $resource = $this->handleAddedResource($file);
+        $isUriResource = $resource instanceof UriResource;
+        if ($integrity === ResourceHashCollection::AUTO) {
+            $integrity = $this->resourceHashCollection->fetchResourceHash($resource)?->export() ?? '';
+        }
+        if ($crossorigin === '' && $integrity !== '' && $isUriResource) {
+            $crossorigin = 'anonymous';
+        }
         $resourceIdentifier = (string)$resource;
         if (!isset($this->cssFiles[$resourceIdentifier])) {
             $this->cssFiles[$resourceIdentifier] = [
@@ -869,13 +893,15 @@ class PageRenderer implements SingletonInterface
                 'allWrap' => $allWrap,
                 'splitChar' => $splitChar,
                 'inline' => $inline,
+                'integrity' => $integrity,
+                'crossorigin' => $crossorigin,
                 'tagAttributes' => $tagAttributes,
             ];
         }
     }
 
     /**
-     * Adds CSS file
+     * Adds CSS library
      *
      * @param string|StaticResourceInterface $file
      * @param string $rel
@@ -886,10 +912,19 @@ class PageRenderer implements SingletonInterface
      * @param string $splitChar The char used to split the allWrap value, default is "|"
      * @param bool $inline
      * @param array<string, string> $tagAttributes Key => value list of tag attributes
+     * @param string $integrity Subresource Integrity (SRI)
+     * @param string $crossorigin CORS settings attribute
      */
-    public function addCssLibrary($file, $rel = 'stylesheet', $media = 'all', $title = '', mixed $_ = null, $forceOnTop = false, $allWrap = '', mixed $__ = null, $splitChar = '|', $inline = false, array $tagAttributes = []): void
+    public function addCssLibrary($file, $rel = 'stylesheet', $media = 'all', $title = '', mixed $_ = null, $forceOnTop = false, $allWrap = '', mixed $__ = null, $splitChar = '|', $inline = false, array $tagAttributes = [], string $integrity = '', string $crossorigin = ''): void
     {
         $resource = $this->handleAddedResource($file);
+        $isUriResource = $resource instanceof UriResource;
+        if ($integrity === ResourceHashCollection::AUTO) {
+            $integrity = $this->resourceHashCollection->fetchResourceHash($resource)?->export() ?? '';
+        }
+        if ($crossorigin === '' && $integrity !== '' && $isUriResource) {
+            $crossorigin = 'anonymous';
+        }
         $resourceIdentifier = (string)$resource;
         if (!isset($this->cssLibs[$resourceIdentifier])) {
             $this->cssLibs[$resourceIdentifier] = [
@@ -901,6 +936,8 @@ class PageRenderer implements SingletonInterface
                 'allWrap' => $allWrap,
                 'splitChar' => $splitChar,
                 'inline' => $inline,
+                'integrity' => $integrity,
+                'crossorigin' => $crossorigin,
                 'tagAttributes' => $tagAttributes,
             ];
         }
@@ -1523,6 +1560,12 @@ class PageRenderer implements SingletonInterface
             }
             if ($properties['title'] ?? false) {
                 $tagAttributes['title'] = $properties['title'];
+            }
+            if ($properties['integrity'] ?? false) {
+                $tagAttributes['integrity'] = $properties['integrity'];
+            }
+            if ($properties['crossorigin'] ?? false) {
+                $tagAttributes['crossorigin'] = $properties['crossorigin'];
             }
             // use nonce if given
             if ($this->nonce !== null) {
