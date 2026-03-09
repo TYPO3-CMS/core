@@ -36,6 +36,7 @@ use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Page\ResourceHashCollection;
 use TYPO3\CMS\Core\Resource\RelativeCssPathFixer;
 use TYPO3\CMS\Core\Resource\StorageRepository;
+use TYPO3\CMS\Core\Security\ContentSecurityPolicy\DirectiveHashCollection;
 use TYPO3\CMS\Core\Service\MarkerBasedTemplateService;
 use TYPO3\CMS\Core\SystemResource\Publishing\SystemResourcePublisherInterface;
 use TYPO3\CMS\Core\SystemResource\SystemResourceFactory;
@@ -78,6 +79,7 @@ final class PageRendererTest extends FunctionalTestCase
             $this->get(SystemResourcePublisherInterface::class),
             $this->get(SystemResourceFactory::class),
             $this->get(ResourceHashCollection::class),
+            $this->get(DirectiveHashCollection::class),
         );
     }
 

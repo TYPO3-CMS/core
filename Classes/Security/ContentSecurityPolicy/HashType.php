@@ -28,6 +28,14 @@ enum HashType: string
     case sha512 = 'sha512';
 
     /**
+     * @return list<string>
+     */
+    public static function values(): array
+    {
+        return array_column(self::cases(), 'value');
+    }
+
+    /**
      * @return int length in bytes
      */
     public function length(): int

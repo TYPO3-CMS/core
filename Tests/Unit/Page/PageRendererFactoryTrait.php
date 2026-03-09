@@ -17,6 +17,7 @@ declare(strict_types=1);
 
 namespace TYPO3\CMS\Core\Tests\Unit\Page;
 
+use Psr\Log\NullLogger;
 use Symfony\Component\Translation\Translator;
 use TYPO3\CMS\Core\Cache\CacheManager;
 use TYPO3\CMS\Core\Cache\Frontend\NullFrontend;
@@ -36,6 +37,7 @@ use TYPO3\CMS\Core\Page\AssetCollector;
 use TYPO3\CMS\Core\Page\AssetRenderer;
 use TYPO3\CMS\Core\Page\ResourceHashCollection;
 use TYPO3\CMS\Core\Resource\RelativeCssPathFixer;
+use TYPO3\CMS\Core\Security\ContentSecurityPolicy\DirectiveHashCollection;
 use TYPO3\CMS\Core\Service\DependencyOrderingService;
 use TYPO3\CMS\Core\Service\MarkerBasedTemplateService;
 use TYPO3\CMS\Core\SystemResource\Publishing\SystemResourcePublisherInterface;
@@ -66,7 +68,7 @@ trait PageRendererFactoryTrait
                 new NullFrontend('runtime'),
             ),
             new MetaTagManagerRegistry(),
-            new AssetRenderer(new AssetCollector(), new NoopEventDispatcher(), $resourcePublisher, $resourceFactory, $this->createMock(ResourceHashCollection::class)),
+            new AssetRenderer(new AssetCollector(), new NoopEventDispatcher(), $resourcePublisher, $resourceFactory, $this->createMock(ResourceHashCollection::class), new DirectiveHashCollection($this->createMock(ResourceHashCollection::class))),
             new AssetCollector(),
             new RelativeCssPathFixer(),
             new LanguageServiceFactory(
@@ -82,6 +84,8 @@ trait PageRendererFactoryTrait
             ),
             $resourcePublisher,
             $resourceFactory,
+            new ResourceHashCollection(new NullLogger(), $resourceFactory, new NullFrontend('assets')),
+            new DirectiveHashCollection($this->createMock(ResourceHashCollection::class)),
         ];
     }
 }

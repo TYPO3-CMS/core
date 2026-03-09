@@ -80,6 +80,20 @@ final class HashValue implements \Stringable, SourceValueInterface
         return new self($matches['value'], HashType::from($matches['type']));
     }
 
+    /**
+     * Parses the unquoted SRI format used in HTML `integrity` attributes (e.g. `sha256-abc123==`),
+     * as well as the quoted CSP format (e.g. `'sha256-abc123=='`).
+     */
+    public static function fromString(string $value): self
+    {
+        $value = trim($value, "'");
+        $pattern = sprintf('/^(?P<type>%s)-(?P<value>.+)$/', implode('|', HashType::values()));
+        if (preg_match($pattern, $value, $matches) !== 1) {
+            throw new \LogicException(sprintf('Parsing "%s" is not known', $value), 1773012077);
+        }
+        return new self($matches['value'], HashType::from($matches['type']));
+    }
+
     private static function createParsingPattern(): string
     {
         $types = array_map(static fn(HashType $type): string => $type->value, HashType::cases());

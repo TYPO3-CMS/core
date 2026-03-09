@@ -18,8 +18,8 @@ declare(strict_types=1);
 namespace TYPO3\CMS\Core\Security\ContentSecurityPolicy;
 
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Configuration\CspConfigurationFactory;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Configuration\DispositionConfiguration;
-use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Configuration\DispositionMapFactory;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Reporting\ResolutionRepository;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\SiteFinder;
@@ -46,7 +46,7 @@ final class MutationRepository
         private readonly ModelService $modelService,
         private readonly ScopeRepository $scopeRepository,
         private readonly ResolutionRepository $resolutionRepository,
-        private readonly DispositionMapFactory $dispositionMapFactory,
+        private readonly CspConfigurationFactory $cspConfigurationFactory,
     ) {
         $this->resolvedMutations = null;
     }
@@ -96,7 +96,7 @@ final class MutationRepository
         foreach ([Scope::backend(), Scope::frontend()] as $scope) {
             $scopedTarget = $this->provideScopeInMap($scope, $this->resolvedMutations);
             $dispositions = $scope === Scope::frontend()
-                ? $this->dispositionMapFactory->resolveFallbackDispositions()
+                ? $this->cspConfigurationFactory->resolveFallbackDispositions()
                 : [Disposition::enforce];
             foreach ($dispositions as $disposition) {
                 $disposedTarget = $this->provideDispositionInMap($disposition, $scopedTarget);
@@ -113,7 +113,7 @@ final class MutationRepository
             $site = $this->resolveSite($scope);
             $scopedTarget = $this->provideScopeInMap($scope, $this->resolvedMutations);
             // fetch site-specific `enforce` and/or `report` disposition configuration
-            $dispositionMap = $this->dispositionMapFactory->buildDispositionMap(
+            $dispositionMap = $this->cspConfigurationFactory->buildDispositionMap(
                 $site->getConfiguration()['contentSecurityPolicies'] ?? []
             );
             /**

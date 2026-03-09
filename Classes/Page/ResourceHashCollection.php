@@ -42,7 +42,7 @@ final class ResourceHashCollection
         private readonly LoggerInterface $logger,
         private readonly SystemResourceFactory $systemResourceFactory,
         #[Autowire(service: 'cache.assets')]
-        private readonly FrontendInterface $assetsCache,
+        private readonly ?FrontendInterface $assetsCache = null,
     ) {}
 
     public function fetchResourceHash(string|UriInterface|StaticResourceInterface $value, HashType $type = HashType::sha256): ?HashValue
@@ -75,7 +75,7 @@ final class ResourceHashCollection
         }
     }
 
-    private function resolveResourceValue(string $value): UriInterface|StaticResourceInterface|null
+    public function resolveResourceValue(string $value): UriInterface|StaticResourceInterface|null
     {
         if (PathUtility::hasProtocolAndScheme($value)) {
             try {

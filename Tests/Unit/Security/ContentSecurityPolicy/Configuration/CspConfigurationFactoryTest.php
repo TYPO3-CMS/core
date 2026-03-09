@@ -20,13 +20,13 @@ namespace TYPO3\CMS\Core\Tests\Unit\Security\ContentSecurityPolicy\Configuration
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use TYPO3\CMS\Core\Configuration\Features;
+use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Configuration\CspConfigurationFactory;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Configuration\DispositionConfiguration;
-use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Configuration\DispositionMapFactory;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Directive;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Disposition;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
-final class DispositionMapFactoryTest extends UnitTestCase
+final class CspConfigurationFactoryTest extends UnitTestCase
 {
     public static function featuresAreReflectedInDispositionMapDataProvider(): \Generator
     {
@@ -65,7 +65,7 @@ final class DispositionMapFactoryTest extends UnitTestCase
     public function featuresAreReflectedInDispositionMap(array $features, array $expectation): void
     {
         $featuresMock = $this->createFeaturesMock($features);
-        $subject = new DispositionMapFactory($featuresMock);
+        $subject = new CspConfigurationFactory($featuresMock);
         $result = $subject->buildDispositionMap([]);
         self::assertSame($expectation, $result->keys());
     }
@@ -200,7 +200,7 @@ final class DispositionMapFactoryTest extends UnitTestCase
     public function configurationIsReflectedInDispositionMap(array $features, array $configuration, array $expectation): void
     {
         $featuresMock = $this->createFeaturesMock($features);
-        $subject = new DispositionMapFactory($featuresMock);
+        $subject = new CspConfigurationFactory($featuresMock);
         $result = $subject->buildDispositionMap($configuration);
         self::assertSame($expectation, $result->keys());
     }
@@ -210,7 +210,7 @@ final class DispositionMapFactoryTest extends UnitTestCase
     {
         // note: `security.frontend.enforceContentSecurityPolicy` is enabled per default for this test
         $featuresMock = $this->createFeaturesMock();
-        $subject = new DispositionMapFactory($featuresMock);
+        $subject = new CspConfigurationFactory($featuresMock);
 
         $enforceConfiguration = [
             'inheritDefault' => false,
@@ -242,7 +242,7 @@ final class DispositionMapFactoryTest extends UnitTestCase
     {
         // note: `security.frontend.enforceContentSecurityPolicy` is enabled per default for this test
         $featuresMock = $this->createFeaturesMock();
-        $subject = new DispositionMapFactory($featuresMock);
+        $subject = new CspConfigurationFactory($featuresMock);
 
         $topLevelConfiguration = [
             'inheritDefault' => false,

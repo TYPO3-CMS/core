@@ -32,7 +32,7 @@ use TYPO3\CMS\Core\Http\Response;
 use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Http\Stream;
 use TYPO3\CMS\Core\Middleware\AbstractContentSecurityPolicyReporter;
-use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Configuration\DispositionMapFactory;
+use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Configuration\CspConfigurationFactory;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Event\BeforePersistingReportEvent;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\PolicyProvider;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Reporting\Report;
@@ -146,11 +146,11 @@ final class BeforePersistingReportEventTest extends FunctionalTestCase
 
     private function executeMiddlewareStack(): ResponseInterface
     {
-        $dispositionMapFactory = new DispositionMapFactory($this->createFeaturesMock());
+        $cspConfigurationFactory = new CspConfigurationFactory($this->createFeaturesMock());
         $reporterMiddleware = new class (
             $this->get(EventDispatcher::class),
             $this->get(PolicyProvider::class),
-            $dispositionMapFactory,
+            $cspConfigurationFactory,
             $this->get(ReportRepository::class),
             $this->get(HashService::class),
         ) extends AbstractContentSecurityPolicyReporter {

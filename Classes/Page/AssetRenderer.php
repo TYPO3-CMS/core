@@ -23,6 +23,7 @@ use TYPO3\CMS\Core\Page\Event\BeforeJavaScriptsRenderingEvent;
 use TYPO3\CMS\Core\Page\Event\BeforeStylesheetsRenderingEvent;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\ConsumableNonce;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Directive;
+use TYPO3\CMS\Core\Security\ContentSecurityPolicy\DirectiveHashCollection;
 use TYPO3\CMS\Core\SystemResource\Publishing\SystemResourcePublisherInterface;
 use TYPO3\CMS\Core\SystemResource\SystemResourceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -40,6 +41,7 @@ readonly class AssetRenderer
         protected SystemResourcePublisherInterface $resourcePublisher,
         protected SystemResourceFactory $systemResourceFactory,
         protected ResourceHashCollection $resourceHashCollection,
+        protected DirectiveHashCollection $directiveHashCollection,
     ) {}
 
     public function renderInlineJavaScript($priority = false, ?ConsumableNonce $nonce = null): string
@@ -62,6 +64,21 @@ readonly class AssetRenderer
         $template = '<script%attributes%></script>';
         $assets = $this->assetCollector->getJavaScripts($priority);
         foreach ($assets as &$assetData) {
+            if (isset($assetData['options']['useNonce'])) {
+                trigger_error(
+                    'The option key "useNonce" for assets is deprecated, use "csp" instead.',
+                    E_USER_DEPRECATED
+                );
+            }
+            // Collect CSP hash from original source path before URL transformation
+            if (!empty($assetData['options']['csp']) || !empty($assetData['options']['useNonce'])) {
+                $integrity = $assetData['attributes']['integrity'] ?? '';
+                if ($integrity !== '') {
+                    $this->directiveHashCollection->addGenericHashValue(Directive::ScriptSrcElem, $integrity);
+                } else {
+                    $this->directiveHashCollection->addResourceHash(Directive::ScriptSrcElem, $assetData['source']);
+                }
+            }
             $assetData['source'] = $this->getAbsoluteWebPath($assetData['source']);
             $assetData['attributes']['src'] = $assetData['source'];
         }
@@ -89,6 +106,21 @@ readonly class AssetRenderer
         $assets = $this->assetCollector->getStyleSheets($priority);
         foreach ($assets as &$assetData) {
             $originalSource = $assetData['source'];
+            if (isset($assetData['options']['useNonce'])) {
+                trigger_error(
+                    'The option key "useNonce" for assets is deprecated, use "csp" instead.',
+                    E_USER_DEPRECATED
+                );
+            }
+            // Collect CSP hash from original source path before URL transformation
+            if (!empty($assetData['options']['csp']) || !empty($assetData['options']['useNonce'])) {
+                $integrity = $assetData['attributes']['integrity'] ?? '';
+                if ($integrity !== '') {
+                    $this->directiveHashCollection->addGenericHashValue(Directive::StyleSrcElem, $integrity);
+                } else {
+                    $this->directiveHashCollection->addResourceHash(Directive::StyleSrcElem, $assetData['source']);
+                }
+            }
             $assetData['source'] = $this->getAbsoluteWebPath($assetData['source']);
             $assetData['attributes']['href'] = $assetData['source'];
             $assetData['attributes']['rel'] = $assetData['attributes']['rel'] ?? 'stylesheet';
@@ -117,7 +149,17 @@ readonly class AssetRenderer
         $results = [];
         foreach ($assets as $assetData) {
             $attributes = $assetData['attributes'];
-            if ($nonce !== null && !empty($assetData['options']['useNonce'])) {
+            if (isset($assetData['options']['useNonce'])) {
+                trigger_error(
+                    'The option key "useNonce" for assets is deprecated, use "csp" instead.',
+                    E_USER_DEPRECATED
+                );
+            }
+            $useCsp = !empty($assetData['options']['csp']) || !empty($assetData['options']['useNonce']);
+            if ($isInline && $useCsp) {
+                $this->directiveHashCollection->addInlineHash($directive, $assetData['source']);
+            }
+            if ($nonce !== null && $useCsp) {
                 $attributes['nonce'] = $isInline ? $nonce->consumeInline($directive) : $nonce->consumeStatic($directive);
             }
             $attributesString = count($attributes) ? ' ' . GeneralUtility::implodeAttributes($attributes, true) : '';

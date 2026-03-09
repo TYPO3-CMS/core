@@ -33,6 +33,7 @@ use TYPO3\CMS\Core\MetaTag\MetaTagManagerRegistry;
 use TYPO3\CMS\Core\Resource\RelativeCssPathFixer;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\ConsumableNonce;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Directive;
+use TYPO3\CMS\Core\Security\ContentSecurityPolicy\DirectiveHashCollection;
 use TYPO3\CMS\Core\Service\MarkerBasedTemplateService;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\SystemResource\Exception\SystemResourceDoesNotExistException;
@@ -136,6 +137,7 @@ class PageRenderer implements SingletonInterface
         protected readonly SystemResourcePublisherInterface $resourcePublisher,
         protected readonly SystemResourceFactory $systemResourceFactory,
         protected readonly ResourceHashCollection $resourceHashCollection,
+        protected readonly DirectiveHashCollection $directiveHashCollection,
     ) {
         $this->locale = new Locale();
         $this->docType = DocType::html5;
@@ -176,6 +178,7 @@ class PageRenderer implements SingletonInterface
                 case 'resourcePublisher':
                 case 'systemResourceFactory':
                 case 'resourceHashCollection':
+                case 'directiveHashCollection':
                 case 'nonce':
                     break;
                 case 'metaTagRegistry':
@@ -212,6 +215,7 @@ class PageRenderer implements SingletonInterface
                 case 'nonce':
                 case 'systemResourceFactory':
                 case 'resourceHashCollection':
+                case 'directiveHashCollection':
                     break;
                 case 'metaTagRegistry':
                     $state[$var] = $this->metaTagRegistry->getState();
@@ -826,14 +830,14 @@ class PageRenderer implements SingletonInterface
      * @param string $block
      * @param bool $forceOnTop
      */
-    public function addJsInlineCode($name, $block, mixed $_ = null, $forceOnTop = false, bool $useNonce = false): void
+    public function addJsInlineCode($name, $block, mixed $_ = null, $forceOnTop = false, bool $csp = false): void
     {
         if (!isset($this->jsInline[$name]) && !empty($block)) {
             $this->jsInline[$name] = [
                 'code' => $block . LF,
                 'section' => self::PART_HEADER,
                 'forceOnTop' => $forceOnTop,
-                'useNonce' => $useNonce,
+                'csp' => $csp,
             ];
         }
     }
@@ -845,14 +849,14 @@ class PageRenderer implements SingletonInterface
      * @param string $block
      * @param bool $forceOnTop
      */
-    public function addJsFooterInlineCode($name, $block, mixed $_ = null, $forceOnTop = false, bool $useNonce = false): void
+    public function addJsFooterInlineCode($name, $block, mixed $_ = null, $forceOnTop = false, bool $csp = false): void
     {
         if (!isset($this->jsInline[$name]) && !empty($block)) {
             $this->jsInline[$name] = [
                 'code' => $block . LF,
                 'section' => self::PART_FOOTER,
                 'forceOnTop' => $forceOnTop,
-                'useNonce' => $useNonce,
+                'csp' => $csp,
             ];
         }
     }
@@ -950,13 +954,13 @@ class PageRenderer implements SingletonInterface
      * @param string $block
      * @param bool $forceOnTop
      */
-    public function addCssInlineBlock($name, $block, mixed $_ = null, $forceOnTop = false, bool $useNonce = false): void
+    public function addCssInlineBlock($name, $block, mixed $_ = null, $forceOnTop = false, bool $csp = false): void
     {
         if (!isset($this->cssInline[$name]) && !empty($block)) {
             $this->cssInline[$name] = [
                 'code' => $block,
                 'forceOnTop' => $forceOnTop,
-                'useNonce' => $useNonce,
+                'csp' => $csp,
             ];
         }
     }
@@ -1541,6 +1545,19 @@ class PageRenderer implements SingletonInterface
     }
 
     /**
+     * Adds a CSP hash for a static file to the hash collection.
+     * Resolves PKG:, EXT: and relative public paths via SystemResourceFactory.
+     * Silently skips URI resources (http/https) and unresolvable paths.
+     */
+    private function addFileHashToCollection(Directive $directive, string $file): void
+    {
+        $resource = $this->systemResourceFactory->createResource($file);
+        if ($resource instanceof SystemResourceInterface) {
+            $this->directiveHashCollection->addResourceHash($directive, $resource);
+        }
+    }
+
+    /**
      * Create link (inline=0) or style (inline=1) tag
      */
     private function createCssTag(array $properties, string $file, ServerRequestInterface $request): string
@@ -1550,6 +1567,17 @@ class PageRenderer implements SingletonInterface
         if ($absolutePathToFile !== '' && @is_file($absolutePathToFile)) {
             $tag = $this->createInlineCssTagFromFile($absolutePathToFile, $properties);
         } else {
+            // collect CSP hash - use integrity attribute if given, else hash file content
+            $integrity = $properties['integrity'] ?? '';
+            if ($integrity !== '') {
+                try {
+                    $this->directiveHashCollection->addGenericHashValue(Directive::StyleSrcElem, $integrity);
+                } catch (\LogicException) {
+                    // integrity format not recognized, skip
+                }
+            } else {
+                $this->addFileHashToCollection(Directive::StyleSrcElem, $file);
+            }
             $tagAttributes = [];
             if ($properties['rel'] ?? false) {
                 $tagAttributes['rel'] = $properties['rel'];
@@ -1593,7 +1621,14 @@ class PageRenderer implements SingletonInterface
         }
         $cssItems = [0 => [], 1 => []];
         foreach ($this->cssInline as $name => $properties) {
-            $nonceKey = (int)(!empty($properties['useNonce']));
+            if (isset($properties['useNonce'])) {
+                trigger_error(
+                    'The array key "useNonce" for CSS inline blocks is deprecated, use "csp" instead.',
+                    E_USER_DEPRECATED
+                );
+            }
+            $useCsp = !empty($properties['csp']) || !empty($properties['useNonce']);
+            $nonceKey = (int)$useCsp;
             $cssCode = '/*' . htmlspecialchars($name) . '*/' . LF . ($properties['code'] ?? '') . LF;
             if ($properties['forceOnTop'] ?? false) {
                 array_unshift($cssItems[$nonceKey], $cssCode);
@@ -1602,9 +1637,14 @@ class PageRenderer implements SingletonInterface
             }
         }
         $cssItems = array_filter($cssItems);
-        foreach ($cssItems as $useNonce => $items) {
-            $attributes = $useNonce && $this->nonce !== null ? ['nonce' => $this->nonce->consumeInline(Directive::StyleSrcElem)] : [];
-            $cssItems[$useNonce] = $this->wrapInlineStyle(implode('', $items), $attributes);
+        foreach ($cssItems as $useCsp => $items) {
+            $assembledContent = implode('', $items);
+            if ($useCsp) {
+                // Hash the full assembled content as it appears inside the <style> tag
+                $this->directiveHashCollection->addInlineHash(Directive::StyleSrcElem, LF . $assembledContent . LF);
+            }
+            $attributes = $useCsp && $this->nonce !== null ? ['nonce' => $this->nonce->consumeInline(Directive::StyleSrcElem)] : [];
+            $cssItems[$useCsp] = $this->wrapInlineStyle($assembledContent, $attributes);
         }
         return implode(LF, $cssItems);
     }
@@ -1620,6 +1660,17 @@ class PageRenderer implements SingletonInterface
         $jsFooterLibs = '';
         if (!empty($this->jsLibs)) {
             foreach ($this->jsLibs as $properties) {
+                // collect CSP hash - use integrity attribute if given, else hash file content
+                $integrity = $properties['integrity'] ?? '';
+                if ($integrity !== '') {
+                    try {
+                        $this->directiveHashCollection->addGenericHashValue(Directive::ScriptSrcElem, $integrity);
+                    } catch (\LogicException) {
+                        // integrity format not recognized, skip
+                    }
+                } else {
+                    $this->addFileHashToCollection(Directive::ScriptSrcElem, $properties['file']);
+                }
                 $tagAttributes = [];
                 $tagAttributes['src'] = $this->getPublicUrlForFile($properties['file'], $request);
                 if ($properties['type'] ?? false) {
@@ -1682,6 +1733,17 @@ class PageRenderer implements SingletonInterface
         $jsFooterFiles = '';
         if (!empty($this->jsFiles)) {
             foreach ($this->jsFiles as $properties) {
+                // collect CSP hash - use integrity attribute if given, else hash file content
+                $integrity = $properties['integrity'] ?? '';
+                if ($integrity !== '') {
+                    try {
+                        $this->directiveHashCollection->addGenericHashValue(Directive::ScriptSrcElem, $integrity);
+                    } catch (\LogicException) {
+                        // integrity format not recognized, skip
+                    }
+                } else {
+                    $this->addFileHashToCollection(Directive::ScriptSrcElem, $properties['file']);
+                }
                 $tagAttributes = [];
                 $tagAttributes['src'] = $this->getPublicUrlForFile($properties['file'], $request);
                 if ($properties['type'] ?? false) {
@@ -1746,7 +1808,14 @@ class PageRenderer implements SingletonInterface
         $regularItems = [0 => [], 1 => []];
         $footerItems = [0 => [], 1 => []];
         foreach ($this->jsInline as $name => $properties) {
-            $nonceKey = (int)(!empty($properties['useNonce'])); // 0 or 1
+            if (isset($properties['useNonce'])) {
+                trigger_error(
+                    'The array key "useNonce" for JS inline blocks is deprecated, use "csp" instead.',
+                    E_USER_DEPRECATED
+                );
+            }
+            $useCsp = !empty($properties['csp']) || !empty($properties['useNonce']);
+            $nonceKey = (int)$useCsp;
             $jsCode = '/*' . htmlspecialchars($name) . '*/' . LF . ($properties['code'] ?? '') . LF;
             if ($properties['forceOnTop'] ?? false) {
                 if (($properties['section'] ?? 0) === self::PART_HEADER) {
@@ -1762,13 +1831,23 @@ class PageRenderer implements SingletonInterface
         }
         $regularItems = array_filter($regularItems);
         $footerItems = array_filter($footerItems);
-        foreach ($regularItems as $useNonce => $items) {
-            $attributes = $useNonce && $this->nonce !== null ? ['nonce' => $this->nonce->consumeInline(Directive::ScriptSrcElem)] : [];
-            $regularItems[$useNonce] = $this->wrapInlineScript(implode('', $items), $attributes);
+        foreach ($regularItems as $useCsp => $items) {
+            $assembledContent = implode('', $items);
+            if ($useCsp) {
+                // Hash the full assembled content as it appears inside the <script> tag
+                $this->directiveHashCollection->addInlineHash(Directive::ScriptSrcElem, LF . $assembledContent . LF);
+            }
+            $attributes = $useCsp && $this->nonce !== null ? ['nonce' => $this->nonce->consumeInline(Directive::ScriptSrcElem)] : [];
+            $regularItems[$useCsp] = $this->wrapInlineScript($assembledContent, $attributes);
         }
-        foreach ($footerItems as $useNonce => $items) {
-            $attributes = $useNonce && $this->nonce !== null ? ['nonce' => $this->nonce->consumeInline(Directive::ScriptSrcElem)] : [];
-            $footerItems[$useNonce] = $this->wrapInlineScript(implode('', $items), $attributes);
+        foreach ($footerItems as $useCsp => $items) {
+            $assembledContent = implode('', $items);
+            if ($useCsp) {
+                // Hash the full assembled content as it appears inside the <script> tag
+                $this->directiveHashCollection->addInlineHash(Directive::ScriptSrcElem, LF . $assembledContent . LF);
+            }
+            $attributes = $useCsp && $this->nonce !== null ? ['nonce' => $this->nonce->consumeInline(Directive::ScriptSrcElem)] : [];
+            $footerItems[$useCsp] = $this->wrapInlineScript($assembledContent, $attributes);
         }
         $regularCode = implode(LF, $regularItems);
         $footerCode = implode(LF, $footerItems);
@@ -1933,6 +2012,8 @@ class PageRenderer implements SingletonInterface
             return '';
         }
         $cssInlineFix = $this->relativeCssPathFixer->fixRelativeUrlPaths($cssInline, '/' . PathUtility::dirname($file) . '/');
+        // collect CSP hash - covers the content as it appears inside the <style> tag
+        $this->directiveHashCollection->addInlineHash(Directive::StyleSrcElem, LF . $cssInlineFix . LF);
         $tagAttributes = [];
         if ($properties['media'] ?? false) {
             $tagAttributes['media'] = $properties['media'];

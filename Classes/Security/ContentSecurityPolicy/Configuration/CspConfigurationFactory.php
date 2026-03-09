@@ -26,7 +26,7 @@ use TYPO3\CMS\Core\Type\Map;
  *
  * @internal
  */
-readonly class DispositionMapFactory
+readonly class CspConfigurationFactory
 {
     public function __construct(private Features $features) {}
 
@@ -43,6 +43,15 @@ readonly class DispositionMapFactory
             $dispositions[] = Disposition::report;
         }
         return $dispositions;
+    }
+
+    /**
+     * Builds a Behavior instance from the top-level `behavior:` section of the `csp.yaml` configuration.
+     */
+    public function buildBehavior(array $siteConfiguration): Behavior
+    {
+        $behaviorData = $siteConfiguration['behavior'] ?? [];
+        return is_array($behaviorData) ? Behavior::fromArray($behaviorData) : new Behavior();
     }
 
     /**

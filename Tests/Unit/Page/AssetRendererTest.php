@@ -27,6 +27,7 @@ use TYPO3\CMS\Core\Page\AssetRenderer;
 use TYPO3\CMS\Core\Page\Event\BeforeJavaScriptsRenderingEvent;
 use TYPO3\CMS\Core\Page\Event\BeforeStylesheetsRenderingEvent;
 use TYPO3\CMS\Core\Page\ResourceHashCollection;
+use TYPO3\CMS\Core\Security\ContentSecurityPolicy\DirectiveHashCollection;
 use TYPO3\CMS\Core\SystemResource\Publishing\SystemResourcePublisherInterface;
 use TYPO3\CMS\Core\SystemResource\SystemResourceFactory;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
@@ -65,7 +66,7 @@ final class AssetRendererTest extends UnitTestCase
         $resourceFactory = $this->createMock(SystemResourceFactory::class);
         $resourcePublisher = $this->createMock(SystemResourcePublisherInterface::class);
         $resourceHashCollection = new ResourceHashCollection(new NullLogger(), $resourceFactory, $this->createMock(FrontendInterface::class));
-        $assetRenderer = new AssetRenderer($assetCollector, $eventDispatcher, $resourcePublisher, $resourceFactory, $resourceHashCollection);
+        $assetRenderer = new AssetRenderer($assetCollector, $eventDispatcher, $resourcePublisher, $resourceFactory, $resourceHashCollection, new DirectiveHashCollection($resourceHashCollection));
 
         $event = new $eventClassName(
             $assetCollector,

@@ -18,7 +18,7 @@ declare(strict_types=1);
 namespace TYPO3\CMS\Core\Security\ContentSecurityPolicy;
 
 use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
-use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Configuration\Behavior;
+use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Middleware\PolicyBag;
 use TYPO3\CMS\Core\Type\Map;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -200,11 +200,20 @@ class Policy
      * Prepares the policy for finally being serialized and issued as HTTP header.
      * This step aims to optimize several combinations, or adjusts directives when 'strict-dynamic' is used.
      */
-    public function prepare(ConsumableNonce $nonce, ?Behavior $behavior = null): self
+    public function prepare(PolicyBag $policyBag): self
     {
+        $hashCollection = $policyBag->directiveHashCollection;
+        $useHash = $policyBag->behavior->useHash;
+        $useNonce = $policyBag->behavior->useNonce;
+
+        // Apply collected asset hashes as mutations when hashes are enabled
+        $target = ($useHash && !$hashCollection->isEmpty())
+            ? $this->mutate(...$hashCollection->asMutationCollections())
+            : $this;
+
         $nonceProxyDirectives = SourceKeyword::nonceProxy->getApplicableDirectives();
 
-        $directives = clone $this->directives;
+        $directives = clone $target->directives;
         $comparator = [$this, 'compareSources'];
         /**
          * @var Directive $directive
@@ -215,7 +224,7 @@ class Policy
                 continue;
             }
             $containsNonceProxy = $collection->contains(SourceKeyword::nonceProxy);
-            if ($behavior?->useNonce === false && $containsNonceProxy) {
+            if ($useNonce === false && $containsNonceProxy) {
                 $directives[$directive] = $collection->without(SourceKeyword::nonceProxy);
             }
         }
@@ -234,29 +243,30 @@ class Policy
         foreach ($directives as $directive => $collection) {
             // applies implicit changes to sources in case 'strict-dynamic' is used for applicable directives
             if ($collection->contains(SourceKeyword::strictDynamic) && SourceKeyword::strictDynamic->isApplicable($directive)) {
-                if ($behavior?->useNonce === false) {
+                if ($useNonce === false) {
                     $directives[$directive] = $collection->without(SourceKeyword::strictDynamic, SourceKeyword::nonceProxy);
                 } else {
+                    // @todo strict-dynamic either needs hashes or nonces
                     $directives[$directive] = SourceKeyword::strictDynamic->applySourceImplications($collection) ?? $collection;
                 }
             }
         }
-        $target = clone $this;
-        $target->directives = $directives;
-        return $target;
+        $result = clone $target;
+        $result->directives = $directives;
+        return $result;
     }
 
     /**
      * Compiles this policy and returns the serialized representation to be used as HTTP header value.
      *
-     * @param ConsumableNonce $nonce used to substitute `SourceKeyword::nonceProxy` items during compilation
      * @param ?FrontendInterface $cache to be used for storing compiled CSP aspects (disabled in install tool)
      */
-    public function compile(ConsumableNonce $nonce, ?Behavior $behavior = null, ?FrontendInterface $cache = null): string
+    public function compile(PolicyBag $policyBag, ?FrontendInterface $cache = null): string
     {
+        $nonce = $policyBag->nonce;
         $policyParts = [];
         $service = GeneralUtility::makeInstance(ModelService::class, $cache);
-        foreach ($this->prepare($nonce, $behavior)->directives as $directive => $collection) {
+        foreach ($this->prepare($policyBag)->directives as $directive => $collection) {
             $directiveParts = $service->compileSources($nonce, $collection);
             if ($directiveParts !== [] || $directive->isStandAlone()) {
                 array_unshift($directiveParts, $directive->value);

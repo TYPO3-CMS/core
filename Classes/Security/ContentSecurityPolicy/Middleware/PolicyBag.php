@@ -19,6 +19,7 @@ namespace TYPO3\CMS\Core\Security\ContentSecurityPolicy\Middleware;
 
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Configuration\Behavior;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\ConsumableNonce;
+use TYPO3\CMS\Core\Security\ContentSecurityPolicy\DirectiveHashCollection;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Disposition;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Policy;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Scope;
@@ -36,6 +37,7 @@ final class PolicyBag
         public readonly Map $dispositionMap,
         public readonly Behavior $behavior,
         public readonly ConsumableNonce $nonce,
+        public readonly DirectiveHashCollection $directiveHashCollection,
     ) {
         $this->policyMap = new Map();
     }

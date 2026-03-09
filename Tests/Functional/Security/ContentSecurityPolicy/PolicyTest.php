@@ -22,16 +22,20 @@ use PHPUnit\Framework\Attributes\Test;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Configuration\Behavior;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\ConsumableNonce;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Directive;
+use TYPO3\CMS\Core\Security\ContentSecurityPolicy\DirectiveHashCollection;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\HashProxy;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\HashValue;
+use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Middleware\PolicyBag;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Mutation;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\MutationCollection;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\MutationMode;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Policy;
+use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Scope;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\SourceInterface;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\SourceKeyword;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\SourceScheme;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\UriValue;
+use TYPO3\CMS\Core\Type\Map;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 
 final class PolicyTest extends FunctionalTestCase
@@ -43,6 +47,11 @@ final class PolicyTest extends FunctionalTestCase
     {
         parent::setUp();
         $this->nonce = new ConsumableNonce();
+    }
+
+    private function createPolicyBag(?Behavior $behavior = null): PolicyBag
+    {
+        return new PolicyBag(Scope::frontend(), new Map(), $behavior ?? new Behavior(), $this->nonce, $this->get(DirectiveHashCollection::class));
     }
 
     #[Test]
@@ -57,14 +66,14 @@ final class PolicyTest extends FunctionalTestCase
             'EXT:core/Tests/Unit/Security/ContentSecurityPolicy/Fixtures/*.js'
         );
         $policy = (new Policy())->extend(Directive::ScriptSrc, $hashProxy);
-        self::assertSame("script-src 'sha256-dawsv3oUbEz6NVoOxXFAu0k7W3I/PS6NucUIAmvoIng='", $policy->compile($this->nonce));
+        self::assertSame("script-src 'sha256-dawsv3oUbEz6NVoOxXFAu0k7W3I/PS6NucUIAmvoIng='", $policy->compile($this->createPolicyBag()));
     }
 
     #[Test]
     public function hashValueIsCompiledUsingHashFactory(): void
     {
         $policy = (new Policy())->extend(Directive::ScriptSrc, HashValue::hash('test'));
-        self::assertSame("script-src 'sha256-n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg='", $policy->compile($this->nonce));
+        self::assertSame("script-src 'sha256-n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg='", $policy->compile($this->createPolicyBag()));
     }
 
     #[Test]
@@ -72,14 +81,14 @@ final class PolicyTest extends FunctionalTestCase
     {
         $hash = hash('sha256', 'test', true);
         $policy = (new Policy())->extend(Directive::ScriptSrc, HashValue::create($hash));
-        self::assertSame("script-src 'sha256-n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg='", $policy->compile($this->nonce));
+        self::assertSame("script-src 'sha256-n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg='", $policy->compile($this->createPolicyBag()));
     }
 
     #[Test]
     public function constructorSetsdefaultDirective(): void
     {
         $policy = (new Policy(SourceKeyword::self));
-        self::assertSame("default-src 'self'", $policy->compile($this->nonce));
+        self::assertSame("default-src 'self'", $policy->compile($this->createPolicyBag()));
     }
 
     #[Test]
@@ -87,7 +96,7 @@ final class PolicyTest extends FunctionalTestCase
     {
         $policy = (new Policy(SourceKeyword::self))
             ->default(SourceKeyword::none);
-        self::assertSame("default-src 'none'", $policy->compile($this->nonce));
+        self::assertSame("default-src 'none'", $policy->compile($this->createPolicyBag()));
     }
 
     #[Test]
@@ -95,7 +104,7 @@ final class PolicyTest extends FunctionalTestCase
     {
         $policy = (new Policy(SourceKeyword::self))
             ->default(SourceKeyword::unsafeEval, SourceKeyword::none);
-        self::assertSame("default-src 'none'", $policy->compile($this->nonce));
+        self::assertSame("default-src 'none'", $policy->compile($this->createPolicyBag()));
     }
 
     #[Test]
@@ -103,7 +112,7 @@ final class PolicyTest extends FunctionalTestCase
     {
         $policy = (new Policy(SourceKeyword::self))
             ->extend(Directive::ScriptSrc, SourceKeyword::unsafeInline);
-        self::assertSame("default-src 'self'; script-src 'self' 'unsafe-inline'", $policy->compile($this->nonce));
+        self::assertSame("default-src 'self'; script-src 'self' 'unsafe-inline'", $policy->compile($this->createPolicyBag()));
     }
 
     #[Test]
@@ -112,7 +121,7 @@ final class PolicyTest extends FunctionalTestCase
         $policy = (new Policy(SourceKeyword::self))
             ->extend(Directive::Sandbox)
             ->extend(Directive::TrustedTypes);
-        self::assertSame("default-src 'self'; sandbox; trusted-types", $policy->compile($this->nonce));
+        self::assertSame("default-src 'self'; sandbox; trusted-types", $policy->compile($this->createPolicyBag()));
     }
 
     public static function ancestorInheritanceIsAppliedFromMutationsDataProvider(): \Generator
@@ -161,7 +170,7 @@ final class PolicyTest extends FunctionalTestCase
     public function ancestorInheritanceIsAppliedFromMutations(MutationCollection $mutations, string $expectation): void
     {
         $policy = (new Policy())->mutate($mutations);
-        self::assertSame($expectation, $policy->compile($this->nonce));
+        self::assertSame($expectation, $policy->compile($this->createPolicyBag()));
     }
 
     #[Test]
@@ -169,7 +178,7 @@ final class PolicyTest extends FunctionalTestCase
     {
         $policy = (new Policy(SourceKeyword::self))
             ->set(Directive::ScriptSrc, SourceKeyword::unsafeInline);
-        self::assertSame("default-src 'self'; script-src 'unsafe-inline'", $policy->compile($this->nonce));
+        self::assertSame("default-src 'self'; script-src 'unsafe-inline'", $policy->compile($this->createPolicyBag()));
     }
 
     public static function directiveIsReducedDataProvider(): \Generator
@@ -197,14 +206,14 @@ final class PolicyTest extends FunctionalTestCase
         $policy = (new Policy())
             ->set(Directive::ScriptSrc, ...$defaultSources)
             ->reduce(Directive::ScriptSrc, ...$reduceSources);
-        self::assertSame($expectation, $policy->compile($this->nonce));
+        self::assertSame($expectation, $policy->compile($this->createPolicyBag()));
     }
 
     #[Test]
     public function sourceSchemeIsCompiled(): void
     {
         $policy = (new Policy(SourceKeyword::self, SourceScheme::blob));
-        self::assertSame("default-src 'self' blob:", $policy->compile($this->nonce));
+        self::assertSame("default-src 'self' blob:", $policy->compile($this->createPolicyBag()));
     }
 
     #[Test]
@@ -212,7 +221,7 @@ final class PolicyTest extends FunctionalTestCase
     {
         $this->nonce->consume();
         $policy = (new Policy(SourceKeyword::self, SourceKeyword::nonceProxy));
-        self::assertSame("default-src 'self' 'nonce-{$this->nonce->value}'", $policy->compile($this->nonce));
+        self::assertSame("default-src 'self' 'nonce-{$this->nonce->value}'", $policy->compile($this->createPolicyBag()));
     }
 
     #[Test]
@@ -221,14 +230,14 @@ final class PolicyTest extends FunctionalTestCase
         $this->nonce->consume();
         $behavior = new Behavior(useNonce: false);
         $policy = (new Policy(SourceKeyword::self, SourceKeyword::nonceProxy));
-        self::assertSame("default-src 'self'", $policy->compile($this->nonce, $behavior));
+        self::assertSame("default-src 'self'", $policy->compile($this->createPolicyBag($behavior)));
     }
 
     #[Test]
     public function nonceProxyIsOmittedIfNotConsumed(): void
     {
         $policy = (new Policy(SourceKeyword::self, SourceKeyword::nonceProxy));
-        self::assertSame("default-src 'self'", $policy->compile($this->nonce));
+        self::assertSame("default-src 'self'", $policy->compile($this->createPolicyBag()));
     }
 
     /**
@@ -243,7 +252,7 @@ final class PolicyTest extends FunctionalTestCase
             ->extend(Directive::StyleSrc, SourceKeyword::strictDynamic);
         self::assertSame(
             "default-src 'self'; script-src 'self' 'strict-dynamic' 'nonce-{$this->nonce->value}'",
-            $policy->compile($this->nonce)
+            $policy->compile($this->createPolicyBag())
         );
     }
 
@@ -255,7 +264,7 @@ final class PolicyTest extends FunctionalTestCase
         $policy = (new Policy(SourceKeyword::self, SourceKeyword::strictDynamic))
             ->extend(Directive::ScriptSrc, SourceKeyword::strictDynamic)
             ->extend(Directive::StyleSrc, SourceKeyword::strictDynamic);
-        self::assertSame("default-src 'self'; script-src 'self'", $policy->compile($this->nonce, $behavior));
+        self::assertSame("default-src 'self'; script-src 'self'", $policy->compile($this->createPolicyBag($behavior)));
     }
 
     #[Test]
@@ -263,7 +272,7 @@ final class PolicyTest extends FunctionalTestCase
     {
         $policy = (new Policy(SourceKeyword::self))
             ->remove(Directive::DefaultSrc);
-        self::assertSame('', $policy->compile($this->nonce));
+        self::assertSame('', $policy->compile($this->createPolicyBag()));
     }
 
     #[Test]
@@ -271,7 +280,7 @@ final class PolicyTest extends FunctionalTestCase
     {
         $policy = (new Policy(SourceKeyword::self, SourceScheme::data))
             ->set(Directive::ScriptSrc, SourceKeyword::self, SourceScheme::data);
-        self::assertSame("default-src 'self' data:", $policy->compile($this->nonce));
+        self::assertSame("default-src 'self' data:", $policy->compile($this->createPolicyBag()));
     }
 
     #[Test]
@@ -290,7 +299,7 @@ final class PolicyTest extends FunctionalTestCase
             "default-src 'self'; script-src 'self' 'nonce-{$this->nonce->value}'; "
             . "style-src 'self' 'unsafe-inline'; style-src-attr 'unsafe-inline'; "
             . "img-src 'self' data:; worker-src 'self' blob:; frame-src 'self' blob:",
-            $policy->compile($this->nonce)
+            $policy->compile($this->createPolicyBag())
         );
     }
 

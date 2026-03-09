@@ -22,8 +22,8 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use TYPO3\CMS\Core\Crypto\HashService;
 use TYPO3\CMS\Core\Http\Uri;
+use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Configuration\CspConfigurationFactory;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Configuration\DispositionConfiguration;
-use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Configuration\DispositionMapFactory;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Event\BeforePersistingReportEvent;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\PolicyProvider;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Reporting\Report;
@@ -43,7 +43,7 @@ abstract class AbstractContentSecurityPolicyReporter implements MiddlewareInterf
     public function __construct(
         protected readonly EventDispatcherInterface $eventDispatcher,
         protected readonly PolicyProvider $policyProvider,
-        protected readonly DispositionMapFactory $dispositionMapFactory,
+        protected readonly CspConfigurationFactory $cspConfigurationFactory,
         protected readonly ReportRepository $reportRepository,
         protected readonly HashService $hashService,
     ) {}
