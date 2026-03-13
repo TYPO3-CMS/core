@@ -21,6 +21,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use TYPO3\CMS\Core\Package\PackageInterface;
 use TYPO3\CMS\Core\Package\PackageManager;
+use TYPO3\CMS\Core\Package\Resource\ResourceCollection;
 use TYPO3\CMS\Core\SystemResource\Exception\CanNotResolveSystemResourceIdentifierException;
 use TYPO3\CMS\Core\SystemResource\Exception\InvalidSystemResourceIdentifierException;
 use TYPO3\CMS\Core\SystemResource\Identifier\FalResourceIdentifier;
@@ -90,6 +91,9 @@ final class SystemResourceIdentifierFactoryTest extends UnitTestCase
             ->method('getValueFromComposerManifest')
             ->with('name')
             ->willReturn('typo3/cms-' . $packageKey);
+        $package
+            ->method('getResources')
+            ->willReturn(new ResourceCollection($package));
         $packageManager
             ->method('getPackage')
             ->willReturn($package);
@@ -174,6 +178,9 @@ final class SystemResourceIdentifierFactoryTest extends UnitTestCase
             ->method('getValueFromComposerManifest')
             ->with('name')
             ->willReturn('typo3/cms-core');
+        $package
+            ->method('getResources')
+            ->willReturn(new ResourceCollection($package));
         $packageManager
             ->method('getPackage')
             ->with('core')

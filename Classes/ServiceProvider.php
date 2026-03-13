@@ -47,6 +47,7 @@ use TYPO3\CMS\Core\Resource\Security\FileNameValidator;
 use TYPO3\CMS\Core\Service\DatabaseUpgradeWizardsService;
 use TYPO3\CMS\Core\Service\SilentConfigurationUpgradeService;
 use TYPO3\CMS\Core\SystemResource\Publishing\SystemResourcePublisherInterface;
+use TYPO3\CMS\Core\SystemResource\SystemResourceFactory;
 use TYPO3\CMS\Core\Type\Map;
 use TYPO3\CMS\Core\TypoScript\Tokenizer\LossyTokenizer;
 use TYPO3\CMS\Core\Utility\File\FileSystem;
@@ -654,6 +655,7 @@ class ServiceProvider extends AbstractServiceProvider
             $container->get(EventDispatcherInterface::class),
             $container->get(RequestFactory::class),
             $container->get(LogManager::class)->getLogger(Localization\LanguagePackService::class),
+            $container->get(SystemResourceFactory::class),
             $container->get(SystemResourcePublisherInterface::class),
         );
     }

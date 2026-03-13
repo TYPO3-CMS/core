@@ -23,7 +23,6 @@ use TYPO3\CMS\Core\Package\PackageInterface;
 use TYPO3\CMS\Core\Package\PackageManager;
 use TYPO3\CMS\Core\SystemResource\Exception\CanNotResolveSystemResourceIdentifierException;
 use TYPO3\CMS\Core\SystemResource\Exception\InvalidSystemResourceIdentifierException;
-use TYPO3\CMS\Core\SystemResource\Package\VirtualAppPackage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
 
@@ -142,13 +141,10 @@ final readonly class SystemResourceIdentifierFactory
             throw new InvalidSystemResourceIdentifierException(sprintf('Relative package path "%s" must not be empty, must not start with a slash ("/") and must not contain invalid characters (e.g. ../ back path). (Given identifier "%s")', $relativePath, $givenIdentifier), 1763381514);
         }
         try {
-            if ($packageKey !== VirtualAppPackage::APP_PACKAGE_KEY) {
-                return $this->packageManager->getPackage($packageKey);
-            }
+            $package = $this->packageManager->getPackage($packageKey);
         } catch (UnknownPackageException $e) {
-            throw new InvalidSystemResourceIdentifierException(sprintf('Package with key "%s" does not exist. (Given identifier "%s")', $relativePath, $givenIdentifier), 1763381504, $e);
+            throw new InvalidSystemResourceIdentifierException(sprintf('Package with key "%s" does not exist. (Given identifier "%s")', $packageKey, $givenIdentifier), 1763381504, $e);
         }
-        $package = new VirtualAppPackage();
         if (!$package->getResources()->isValidPath($relativePath)) {
             throw new InvalidSystemResourceIdentifierException(sprintf('Project path "%s" is not allowed', $relativePath), 1763381519);
         }

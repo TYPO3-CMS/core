@@ -17,6 +17,8 @@ declare(strict_types=1);
 
 namespace TYPO3\CMS\Core\Package\Cache;
 
+use TYPO3\CMS\Core\Package\Exception\PackageManagerCacheUnavailableException;
+
 /**
  * Interface for TYPO3 Package cache.
  *
@@ -48,6 +50,7 @@ interface PackageCacheInterface
 
     /**
      * Identifier that identifies the current state (typically a hash)
+     * @throws PackageManagerCacheUnavailableException
      */
     public function getIdentifier(): string;
 }
