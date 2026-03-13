@@ -31,6 +31,7 @@ use TYPO3\CMS\Core\Package\Exception\InvalidPackagePathException;
 use TYPO3\CMS\Core\Package\Exception\InvalidPackageStateException;
 use TYPO3\CMS\Core\Package\Package;
 use TYPO3\CMS\Core\Package\PackageManager;
+use TYPO3\CMS\Core\Package\VirtualAppPackage;
 use TYPO3\CMS\Core\Service\DependencyOrderingService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
@@ -101,16 +102,34 @@ class PackageArtifactBuilder extends PackageManager implements InstallerScript
         foreach ($this->extractPackageMapFromComposer() as [$composerPackage, $path, $extensionKey]) {
             $packagePath = PathUtility::sanitizeTrailingSeparator($path);
             $package = new Package($this, $extensionKey, $packagePath, true);
-            $package->makePathRelative($this->fileSystem, $basePath);
             $package->getPackageMetaData()->setVersion($composerPackage->getPrettyVersion());
             $this->registerPackage($package);
         }
         $this->sortPackagesAndConfiguration();
+        $appPackage = new VirtualAppPackage(
+            $this,
+            VirtualAppPackage::APP_PACKAGE_KEY,
+            $this->packagesBasePath,
+            rtrim($this->config->get('web-dir', $this->config::RELATIVE_PATHS), '/') . '/',
+        );
+        $this->registerPackage($appPackage);
+        $this->packageStatesConfiguration['packages'][$appPackage->getPackageKey()] = [];
         $cacheIdentifier = md5(serialize($composer->getLocker()->getLockData()) . $this->event->isDevMode());
         $this->setPackageCache(new ComposerPackageArtifact($composer->getConfig()->get('vendor-dir') . '/typo3', $this->fileSystem, $cacheIdentifier));
         $this->saveToPackageCache();
 
         return true;
+    }
+
+    protected function saveToPackageCache(): void
+    {
+        $basePath = $this->config->get('base-dir');
+        foreach ($this->packages as $package) {
+            if ($package instanceof Package) {
+                $package->makePathRelative($this->fileSystem, $basePath);
+            }
+        }
+        parent::saveToPackageCache();
     }
 
     /**

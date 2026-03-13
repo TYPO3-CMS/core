@@ -18,13 +18,12 @@ declare(strict_types=1);
 namespace TYPO3\CMS\Core\SystemResource\Package;
 
 use TYPO3\CMS\Core\Package\Resource\ResourceCollectionInterface;
-use TYPO3\CMS\Core\SystemResource\Type\PublicPackageFile;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * @internal This is subject to change during v14 development. Do not use.
  */
-final class ProjectResourceCollection implements ResourceCollectionInterface
+final class AppResourceCollection implements ResourceCollectionInterface
 {
     public function __construct(private readonly string $publicPrefix) {}
 
@@ -33,7 +32,7 @@ final class ProjectResourceCollection implements ResourceCollectionInterface
         return str_starts_with($relativePath, $this->publicPrefix);
     }
 
-    public function isValidPath(string $path): bool
+    public function isValidPath(string $relativePath): bool
     {
         $allowedPublicFolders = [
             '_assets/',
@@ -54,11 +53,11 @@ final class ProjectResourceCollection implements ResourceCollectionInterface
             )
         );
 
-        $matched = preg_match('#^' . $this->publicPrefix . '(' . $pattern . ')#', $path);
+        $matched = preg_match('#^' . $this->publicPrefix . '(' . $pattern . ')#', $relativePath);
         return $matched !== false && $matched > 0;
     }
 
-    public function getPackageIcon(): ?PublicPackageFile
+    public function getPackageIcon(): ?string
     {
         return null;
     }
