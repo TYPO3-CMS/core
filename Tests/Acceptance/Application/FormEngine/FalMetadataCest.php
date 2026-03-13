@@ -59,7 +59,7 @@ final class FalMetadataCest
         $I->executeJS("document.querySelector('typo3-backend-new-record-wizard').shadowRoot.querySelector('button[data-identifier=\"default\"]').click()");
         $I->executeJS("document.querySelector('typo3-backend-new-record-wizard').shadowRoot.querySelector('button[data-identifier=\"default_textpic\"]').click()");
         $I->switchToContentFrame();
-        $I->waitForText('Create new Page Content on page');
+        $I->waitForText('Create new Text & Images', 3, 'h1');
         $I->fillField('//input[contains(@data-formengine-input-name, "data[tt_content]") and contains(@data-formengine-input-name, "[header]")]', 'tt_content with image');
 
         $I->click('Images');
@@ -95,7 +95,7 @@ final class FalMetadataCest
         $I->switchToContentFrame();
         $I->see('styleguide', 'h1');
         $I->click('bus_lane.jpg');
-        $I->waitForText('Edit File Metadata "bus_lane.jpg" on root level');
+        $I->waitForText('bus_lane.jpg', 3, 'h1');
         $I->fillField('//input[contains(@data-formengine-input-name, "data[sys_file_metadata]") and contains(@data-formengine-input-name, "[title]")]', 'Test title');
         $I->fillField('//textarea[contains(@data-formengine-input-name, "data[sys_file_metadata]") and contains(@data-formengine-input-name, "[description]")]', 'Test description');
         $I->fillField('//input[contains(@data-formengine-input-name, "data[sys_file_metadata]") and contains(@data-formengine-input-name, "[alternative]")]', 'Test alternative');
@@ -151,7 +151,7 @@ final class FalMetadataCest
         $I->executeJS("document.querySelector('typo3-backend-new-record-wizard').shadowRoot.querySelector('button[data-identifier=\"default\"]').click()");
         $I->executeJS("document.querySelector('typo3-backend-new-record-wizard').shadowRoot.querySelector('button[data-identifier=\"default_textpic\"]').click()");
         $I->switchToContentFrame();
-        $I->waitForText('Create new Page Content on page');
+        $I->waitForText('Create new Text & Images', 3, 'h1');
         $I->fillField('//input[contains(@data-formengine-input-name, "data[tt_content]") and contains(@data-formengine-input-name, "[header]")]', 'tt_content with image with filled metadata');
 
         $I->click('Images');

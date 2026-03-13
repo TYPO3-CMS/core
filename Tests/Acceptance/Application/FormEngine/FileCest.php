@@ -43,7 +43,7 @@ final class FileCest
         $I->waitForText('file', 20);
         $editRecordLinkCssPath = '#recordlist-tx_styleguide_file a[aria-label="Edit record"]';
         $I->click($editRecordLinkCssPath);
-        $I->waitForText('Edit Form', 3, 'h1');
+        $I->waitForElement('.typo3-TCEforms', 3);
     }
 
     public function seeFalRelationInfo(ApplicationTester $I, ModalDialog $modalDialog): void

@@ -60,7 +60,7 @@ final class TaskGroupsCest
         $I->seeOptionIsSelected($select, $this->groupName . ' [tx_scheduler_task_group_1]');
         $I->click('.module-docheader button[title="Save"]');
         // Show the "Edit record" screen (= it is saved)
-        $I->waitForText('Edit Scheduler task');
+        $I->waitForElement('.typo3-TCEforms', 3);
         $I->click('.module-docheader a[title="Close"]');
         $I->seeElement('//div[contains(@class, "panel-heading")][contains(., "' . $this->groupName . '")]');
     }
@@ -83,7 +83,7 @@ final class TaskGroupsCest
         $I->click('//div[contains(@class, "panel-heading")]//strong[contains(., "' . $this->groupName . '")]');
 
         $I->waitForElementNotVisible('#t3js-ui-block');
-        $I->waitForText('Edit Scheduler task group');
+        $I->waitForText($this->groupName, 3, 'h1');
 
         $I->click('//input[contains(@data-formengine-input-name, "data[tx_scheduler_task_group]") and contains(@data-formengine-input-name, "[color]")]');
         $I->click('//button[contains(@aria-label, "Color swatch: TYPO3 orange")]');
@@ -92,7 +92,7 @@ final class TaskGroupsCest
 
         $I->click('.module-docheader button[title="Save"]');
         $I->waitForElementNotVisible('#t3js-ui-block');
-        $I->waitForText('Edit Scheduler task group');
+        $I->waitForText($this->groupName, 3, 'h1');
         $I->click('.module-docheader a[title="Close"]');
 
         $I->seeElement('//div[contains(@class, "panel")][contains(., "' . $this->groupName . '")][contains(@style, "border-left") and contains(@style, "#ff8700")]');

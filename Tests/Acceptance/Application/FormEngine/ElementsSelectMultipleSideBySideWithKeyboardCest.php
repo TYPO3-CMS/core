@@ -34,7 +34,7 @@ final class ElementsSelectMultipleSideBySideWithKeyboardCest
         $I->waitForText('elements select', 20);
         $editRecordLinkCssPath = '#recordlist-tx_styleguide_elements_select a[aria-label="Edit record"]';
         $I->click($editRecordLinkCssPath);
-        $I->waitForText('Edit Form', 3, 'h1');
+        $I->waitForElement('.typo3-TCEforms', 3);
 
         $I->click('renderType=selectMultipleSideBySide');
     }

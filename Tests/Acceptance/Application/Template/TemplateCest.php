@@ -229,7 +229,7 @@ final class TemplateCest
         $I->waitForText('Edit the whole TypoScript record');
         $I->see('Edit the whole TypoScript record');
         $I->click('Edit the whole TypoScript record');
-        $I->waitForText('Edit TypoScript record "+ext" on page "menu_sitemap_pages"');
+        $I->waitForText('+ext', 3, 'h1');
         $I->wait(2); // wait for code mirror init
     }
 

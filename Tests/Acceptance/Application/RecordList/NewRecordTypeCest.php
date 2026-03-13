@@ -48,7 +48,7 @@ final class NewRecordTypeCest
         $I->waitForElementVisible('#inside-types');
         $I->click('//a[text()[normalize-space(.) = "Standard Page"]]');
         $I->waitForElementNotVisible('#t3js-ui-block');
-        $I->waitForText('Create new Page', 3, 'h1');
+        $I->waitForText('Create new Standard Page', 3, 'h1');
         $I->see('Standard Page [1]');
         $I->waitForElementNotVisible('#t3js-ui-block');
         $I->fillField('//input[contains(@data-formengine-input-name, "data[pages]") and contains(@data-formengine-input-name, "[title]")]', 'new standard page');

@@ -74,7 +74,7 @@ final class SchedulerTaskWizardCest
 
         // Should be in FormEngine form for creating new task
         $I->seeInCurrentUrl('record/edit');
-        $I->see('Create new Scheduler task on root level');
+        $I->waitForText('Create new Fileadmin garbage collection', 3, 'h1');
 
         // Should see task-specific field
         $I->see('Number of days until removing files');

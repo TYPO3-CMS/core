@@ -37,7 +37,7 @@ final class LinkBrowserCest
         $I->waitForText('Unique ID', 20);
 
         $I->click('#t3-table-tx_styleguide_elements_basic a[aria-label="Edit record"]');
-        $I->waitForText('Edit Form', 3, 'h1');
+        $I->waitForElement('.typo3-TCEforms', 3);
 
         $I->click('link', '[role="tablist"]');
     }

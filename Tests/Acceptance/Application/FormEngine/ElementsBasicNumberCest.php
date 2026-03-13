@@ -42,7 +42,7 @@ final class ElementsBasicNumberCest extends AbstractElementsBasicCest
         $editRecordLinkCssPath = '#recordlist-tx_styleguide_elements_basic a[aria-label="Edit record"]';
         $I->click($editRecordLinkCssPath);
         $I->waitForElementNotVisible('#t3js-ui-block');
-        $I->waitForText('Edit Form', 3, 'h1');
+        $I->waitForElement('.typo3-TCEforms', 3);
 
         // Make sure the test operates on the "number" tab
         $I->click('number');

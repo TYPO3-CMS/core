@@ -42,7 +42,7 @@ final class ElementsGroupCest
         $I->waitForText('elements group', 20);
         $editRecordLinkCssPath = '#recordlist-tx_styleguide_elements_group a[aria-label="Edit record"]';
         $I->click($editRecordLinkCssPath);
-        $I->waitForText('Edit Form', 3, 'h1');
+        $I->waitForElement('.typo3-TCEforms', 3);
     }
 
     public function sortElementsInGroup(ApplicationTester $I): void

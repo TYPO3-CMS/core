@@ -47,7 +47,7 @@ final class InlinePagesLocalizeResourceCest
     {
         // Add an image to media field of default lang page
         $I->click('.module-docheader a[title="Edit page properties"]');
-        $I->waitForText('Edit Page "staticdata"', 3, 'h1');
+        $I->waitForText('staticdata', 3, 'h1');
         // Inline add record in Resources tab
         $I->click('Resources');
         $I->click('span[data-identifier="actions-insert-record"]', 'div.active');
@@ -72,7 +72,7 @@ final class InlinePagesLocalizeResourceCest
         $I->waitForText('staticdata - language 1');
         $I->wait(1);
         $I->click('staticdata - language 1');
-        $I->waitForText('Edit Page "staticdata - language 1"', 3, 'h1');
+        $I->waitForText('staticdata - language 1', 3, 'h1');
         $I->click('Resources');
         $I->see('telephone_box.jpg');
     }

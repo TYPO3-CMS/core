@@ -47,7 +47,7 @@ final class ElementsBasicInputTextTableCest extends AbstractElementsBasicCest
         $I->click($editRecordLinkCssPath);
         $I->waitForElementNotVisible('#t3js-ui-block');
 
-        $I->waitForText('Edit Form', 3, 'h1');
+        $I->waitForElement('.typo3-TCEforms', 3);
 
         // Make sure the test operates on the "text" tab
         $I->click('text');

@@ -71,12 +71,12 @@ final class TasksCest
     public function canEditTask(ApplicationTester $I): void
     {
         $I->click('//a[contains(@title, "Edit")]');
-        $I->waitForText('Edit Scheduler task "System Status Update" on root level');
+        $I->waitForText('System Status Update', 3, 'h1');
         $I->seeInField('//textarea[contains(@data-formengine-input-name, "data[tx_scheduler_task]") and contains(@data-formengine-input-name, "[tx_reports_notification_email]")]', 'test@local.typo3.org');
         $I->fillField('//textarea[contains(@data-formengine-input-name, "data[tx_scheduler_task]") and contains(@data-formengine-input-name, "[tx_reports_notification_email]")]', 'foo@local.typo3.org');
         $I->click('h1');
         $I->click('.module-docheader [name="_savedok"]');
-        $I->waitForText('Edit Scheduler task');
+        $I->waitForText('System Status Update', 3, 'h1');
         $I->click('.module-docheader a[title="Close"]');
     }
 

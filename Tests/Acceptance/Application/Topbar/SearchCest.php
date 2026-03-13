@@ -51,7 +51,7 @@ final class SearchCest
 
         $I->switchToContentFrame();
         $I->waitForElementVisible('#EditDocumentController');
-        $I->canSee('Edit Admin "admin" on root level');
+        $I->waitForText('admin', 3, 'h1');
     }
 
     public function searchForFancyTextAndCheckEmptyResultInfo(ApplicationTester $I, ModalDialog $dialog): void

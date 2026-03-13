@@ -372,14 +372,17 @@
       <trans-unit id="labels.editMultiple">
         <source>Edit multiple</source>
       </trans-unit>
-      <trans-unit id="labels.editMultiplePages">
+      <trans-unit id="labels.editMultiplePages" x-unused-since="14.2">
         <source>Edit multiple pages</source>
       </trans-unit>
-      <trans-unit id="labels.editMultipleRecords">
+      <trans-unit id="labels.editMultipleRecords" x-unused-since="14.2">
         <source>Edit multiple "%s" records on page "%s"</source>
       </trans-unit>
-      <trans-unit id="labels.editMultipleRecordsRootLevel">
+      <trans-unit id="labels.editMultipleRecordsRootLevel" x-unused-since="14.2">
         <source>Edit multiple "%s" records on root level</source>
+      </trans-unit>
+      <trans-unit id="labels.records">
+        <source>{count, plural, one {# record} other {# records}}</source>
       </trans-unit>
       <trans-unit id="labels.rootLevel">
         <source>Root level</source>
