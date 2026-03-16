@@ -93,6 +93,32 @@ final class TypoLinkCodecServiceTest extends UnitTestCase
                 ],
                 'foo - - - - "noopener nofollow"',
             ],
+            'download without custom filename' => [
+                [
+                    'url' => 't3://file?uid=42',
+                    'download' => 'true',
+                ],
+                't3://file?uid=42 - - - - - true',
+            ],
+            'download with custom filename' => [
+                [
+                    'url' => 't3://file?uid=42',
+                    'download' => 'report.pdf',
+                ],
+                't3://file?uid=42 - - - - - report.pdf',
+            ],
+            'full parameter usage with rel and download' => [
+                [
+                    'url' => 't3://file?uid=42',
+                    'target' => '_blank',
+                    'class' => 'css-class',
+                    'title' => 'my title',
+                    'additionalParams' => '',
+                    'rel' => 'noopener',
+                    'download' => 'custom name.pdf',
+                ],
+                't3://file?uid=42 _blank css-class "my title" - noopener "custom name.pdf"',
+            ],
             'crazy title and partial items only' => [
                 [
                     'url' => 'foo',
@@ -244,6 +270,51 @@ final class TypoLinkCodecServiceTest extends UnitTestCase
                     'class' => 'css-class',
                     'title' => 'testtitle with whitespace',
                     'additionalParams' => '&X=y',
+                ],
+            ],
+            'download without custom filename' => [
+                't3://file?uid=42 - - - - - true',
+                [
+                    'url' => 't3://file?uid=42',
+                    'target' => '',
+                    'class' => '',
+                    'title' => '',
+                    'additionalParams' => '',
+                    'download' => 'true',
+                ],
+            ],
+            'download with custom filename' => [
+                't3://file?uid=42 - - - - - report.pdf',
+                [
+                    'url' => 't3://file?uid=42',
+                    'target' => '',
+                    'class' => '',
+                    'title' => '',
+                    'additionalParams' => '',
+                    'download' => 'report.pdf',
+                ],
+            ],
+            'full parameter usage with rel and download' => [
+                't3://file?uid=42 _blank css-class "my title" - noopener "custom name.pdf"',
+                [
+                    'url' => 't3://file?uid=42',
+                    'target' => '_blank',
+                    'class' => 'css-class',
+                    'title' => 'my title',
+                    'additionalParams' => '',
+                    'rel' => 'noopener',
+                    'download' => 'custom name.pdf',
+                ],
+            ],
+            'empty download symbol does not set download key' => [
+                't3://file?uid=42 - - - - noopener -',
+                [
+                    'url' => 't3://file?uid=42',
+                    'target' => '',
+                    'class' => '',
+                    'title' => '',
+                    'additionalParams' => '',
+                    'rel' => 'noopener',
                 ],
             ],
         ];

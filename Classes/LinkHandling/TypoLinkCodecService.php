@@ -43,7 +43,7 @@ final readonly class TypoLinkCodecService
     /**
      * Encode TypoLink parts to a single string
      *
-     * @param array{url?: string, target?: string, class?: string, title?: string, additionalParams?: string, rel?: string} $typoLinkParts
+     * @param array{url?: string, target?: string, class?: string, title?: string, additionalParams?: string, rel?: string, download?: string} $typoLinkParts
      * @return string A correctly encoded TypoLink string
      */
     public function encode(array $typoLinkParts): string
@@ -55,8 +55,12 @@ final readonly class TypoLinkCodecService
         // Get empty structure
         $reverseSortedParameters = array_reverse($this->decode(''), true);
         // Add optional rel support as sixth TypoLink part.
-        if (array_key_exists('rel', $typoLinkParts)) {
+        if (array_key_exists('rel', $typoLinkParts) || array_key_exists('download', $typoLinkParts)) {
             $reverseSortedParameters = ['rel' => '', ...$reverseSortedParameters];
+        }
+        // Add optional download support as seventh TypoLink part.
+        if (array_key_exists('download', $typoLinkParts)) {
+            $reverseSortedParameters = ['download' => '', ...$reverseSortedParameters];
         }
         $aValueWasSet = false;
         foreach ($reverseSortedParameters as $key => &$value) {
@@ -92,7 +96,7 @@ final readonly class TypoLinkCodecService
      * Decodes a TypoLink string into its parts
      *
      * @param string $typoLink The properly encoded TypoLink string
-     * @return array{url: string, target: string, class: string, title: string, additionalParams: string, rel?: string}
+     * @return array{url: string, target: string, class: string, title: string, additionalParams: string, rel?: string, download?: string}
      */
     public function decode(string $typoLink): array
     {
@@ -113,6 +117,9 @@ final readonly class TypoLinkCodecService
         ];
         if (isset($parts[5]) && $parts[5] !== self::EMPTY_VALUE_SYMBOL) {
             $typoLinkParts['rel'] = trim($parts[5]);
+        }
+        if (isset($parts[6]) && $parts[6] !== self::EMPTY_VALUE_SYMBOL) {
+            $typoLinkParts['download'] = trim($parts[6]);
         }
 
         return $this->eventDispatcher->dispatch(
