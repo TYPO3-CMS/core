@@ -27,6 +27,7 @@ use TYPO3\CMS\Core\Crypto\HashService;
 use TYPO3\CMS\Core\Domain\Page;
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 use TYPO3\CMS\Core\Exception\SiteNotFoundException;
+use TYPO3\CMS\Core\ExpressionLanguage\Resolver;
 use TYPO3\CMS\Core\Http\Uri;
 use TYPO3\CMS\Core\Routing\Aspect\AspectFactory;
 use TYPO3\CMS\Core\Routing\Aspect\MappableProcessor;
@@ -154,7 +155,7 @@ class PageRouter implements RouterInterface
                 ['utf8' => true, '_page' => $page]
             );
             $pageCollection->add('default', $defaultRouteForPage);
-            $enhancers = $this->getEnhancersForPage($pageIdForDefaultLanguage, $language);
+            $enhancers = $this->getEnhancersForPage($pageIdForDefaultLanguage, $language, $page);
             foreach ($enhancers as $enhancer) {
                 if ($enhancer instanceof DecoratingEnhancerInterface) {
                     $enhancer->decorateForMatching($pageCollection, $urlPath);
@@ -313,7 +314,7 @@ class PageRouter implements RouterInterface
 
         // cHash is never considered because cHash is built by this very method.
         unset($originalParameters['cHash']);
-        $enhancers = $this->getEnhancersForPage($pageId, $language);
+        $enhancers = $this->getEnhancersForPage($pageId, $language, $page);
         foreach ($enhancers as $enhancer) {
             if ($enhancer instanceof RoutingEnhancerInterface) {
                 $enhancer->enhanceForGeneration($collection, $originalParameters);
@@ -462,12 +463,14 @@ class PageRouter implements RouterInterface
      *
      * @return EnhancerInterface[]
      */
-    protected function getEnhancersForPage(int $pageId, SiteLanguage $language): array
+    protected function getEnhancersForPage(int $pageId, SiteLanguage $language, array $page = []): array
     {
         $enhancers = [];
+        $resolver = null;
         foreach ($this->site->getConfiguration()['routeEnhancers'] ?? [] as $enhancerConfiguration) {
-            // Check if there is a restriction to page Ids.
-            if (is_array($enhancerConfiguration['limitToPages'] ?? null) && !in_array($pageId, $enhancerConfiguration['limitToPages'])) {
+            if (is_array($enhancerConfiguration['limitToPages'] ?? null)
+                && !$this->matchesPageLimitation($enhancerConfiguration['limitToPages'], $pageId, $page, $language, $resolver)
+            ) {
                 continue;
             }
             $enhancerType = $enhancerConfiguration['type'] ?? '';
@@ -483,6 +486,47 @@ class PageRouter implements RouterInterface
             $enhancers[] = $enhancer;
         }
         return $enhancers;
+    }
+
+    /**
+     * Checks whether the current page matches any of the limitToPages conditions.
+     * Each entry in the array is OR-combined:
+     * - Integer values are matched against the page ID (existing behavior)
+     * - String values are evaluated as Symfony ExpressionLanguage expressions
+     *   with access to the `page`, `site` and `siteLanguage` variables
+     */
+    protected function matchesPageLimitation(array $limitToPages, int $pageId, array $page, SiteLanguage $language, ?Resolver &$resolver): bool
+    {
+        foreach ($limitToPages as $limitation) {
+            if (is_int($limitation)) {
+                if ($limitation === $pageId) {
+                    return true;
+                }
+                continue;
+            }
+            if (is_string($limitation) && $limitation !== '') {
+                if ($page === []) {
+                    continue;
+                }
+                $resolver ??= GeneralUtility::makeInstance(
+                    Resolver::class,
+                    'routing',
+                    [
+                        'page' => $page,
+                        'site' => $this->site,
+                        'siteLanguage' => $language,
+                    ]
+                );
+                try {
+                    if ($resolver->evaluate($limitation)) {
+                        return true;
+                    }
+                } catch (\Exception) {
+                    continue;
+                }
+            }
+        }
+        return false;
     }
 
     protected function generateCacheHash(int $pageId, PageArguments $arguments): string
