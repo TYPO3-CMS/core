@@ -109,8 +109,8 @@ final class FalMetadataCest
         $I->switchToWindow('typo3-backend');
         $this->openRecordInContextPanel($I, 'tt_content with image');
         $I->click('Images');
-        if (count($I->grabMultiple('.panel-collapsed .form-irre-header')) > 0) {
-            $I->click('.panel-collapsed .form-irre-header');
+        if (count($I->grabMultiple('.panel-button.collapsed')) > 0) {
+            $I->click('.panel-button.collapsed');
         }
         $I->waitForElement('.t3js-form-field-eval-null-placeholder-checkbox');
 
@@ -205,8 +205,8 @@ final class FalMetadataCest
         $I->switchToWindow('typo3-backend');
         $this->openRecordInContextPanel($I, 'tt_content with image');
         $I->click('Images');
-        if (count($I->grabMultiple('.panel-collapsed .form-irre-header')) > 0) {
-            $I->click('.panel-collapsed .form-irre-header');
+        if (count($I->grabMultiple('.panel-button.collapsed')) > 0) {
+            $I->click('.panel-button.collapsed');
         }
         $I->waitForElement('.t3js-form-field-eval-null-placeholder-checkbox');
 

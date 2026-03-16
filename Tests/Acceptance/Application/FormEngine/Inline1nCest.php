@@ -55,11 +55,11 @@ final class Inline1nCest
 
     public function checkIfExpandsAndCollapseShowInput(ApplicationTester $I): void
     {
-        $I->click('div[data-bs-toggle="formengine-inline"]', '[data-field-name^="[tx_styleguide_inline_1n_inline_1_child]["]');
+        $I->click('.panel-button', '[data-field-name^="[tx_styleguide_inline_1n_inline_1_child]["]');
         $I->waitForElement('input[data-formengine-input-name="data[tx_styleguide_inline_1n_inline_1_child][1][input_1]"]');
         $I->seeInField('input[data-formengine-input-name="data[tx_styleguide_inline_1n_inline_1_child][1][input_1]"]', 'lipsum');
-        $I->click('div[data-bs-toggle="formengine-inline"]', '[data-field-name^="[tx_styleguide_inline_1n_inline_1_child]["]');
-        $I->waitForElementNotVisible('[data-field-name^="[tx_styleguide_inline_1n_inline_1_child]["] .panel');
+        $I->click('.panel-button', '[data-field-name^="[tx_styleguide_inline_1n_inline_1_child]["]');
+        $I->waitForElementNotVisible('[data-field-name^="[tx_styleguide_inline_1n_inline_1_child]["] .panel-collapse.show');
     }
 
     public function hideAndUnhideInline1nInlineElement(ApplicationTester $I): void
@@ -127,7 +127,7 @@ final class Inline1nCest
 
     public function changeInline1nInlineInput(ApplicationTester $I): void
     {
-        $I->click('div[data-bs-toggle="formengine-inline"]', '[data-field-name^="[tx_styleguide_inline_1n_inline_1_child][1"]');
+        $I->click('.panel-button', '[data-field-name^="[tx_styleguide_inline_1n_inline_1_child][1"]');
         $I->waitForElement('input[data-formengine-input-name="data[tx_styleguide_inline_1n_inline_1_child][1][input_1]"]');
         $I->fillField('input[data-formengine-input-name="data[tx_styleguide_inline_1n_inline_1_child][1][input_1]"]', 'hello world');
         $I->click('button[name="_savedok"]');
@@ -163,7 +163,7 @@ final class Inline1nCest
         $I->click('inline_2');
 
         // Open the inline element.
-        $I->click('div[data-bs-toggle="formengine-inline"]', '[data-field-name^="[tx_styleguide_inline_1n_inline_2_child]["]');
+        $I->click('.panel-button', '[data-field-name^="[tx_styleguide_inline_1n_inline_2_child]["]');
         $I->waitForElement('input[data-formengine-input-name="data[tx_styleguide_inline_1n_inline_2_child][1][input_1]"]');
 
         // Hide the inline element.

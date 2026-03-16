@@ -26,7 +26,7 @@ use TYPO3\CMS\Core\Tests\Acceptance\Support\Helper\PageTree;
  */
 final class FileCest
 {
-    private static string $filenameSelector = '.form-irre-header-body > span > span';
+    private static string $filenameSelector = '.panel-title';
     private static string $saveButtonLink = '//*/button[@name="_savedok"][1]';
 
     /**
@@ -50,7 +50,7 @@ final class FileCest
     {
         $infoButtonSelector = '.tab-content button[data-action="infowindow"]';
 
-        $filename = $I->grabTextFrom(self::$filenameSelector);
+        $filename = trim(explode("\n", $I->grabTextFrom(self::$filenameSelector))[0]);
         $I->click($infoButtonSelector);
         $modalDialog->canSeeDialog();
         $I->switchToIFrame('.modal-iframe');
