@@ -1460,6 +1460,7 @@ final class RecordFieldTransformerTest extends FunctionalTestCase
         $resolvedRelation = $resolvedRecord->get('typo3tests_contentelementb_flexfield');
         self::assertInstanceOf(FlexFormFieldValues::class, $resolvedRelation);
         self::assertSame([], $resolvedRelation->toArray());
+        self::assertFalse($resolvedRelation->has('foo'));
     }
 
     #[Test]
