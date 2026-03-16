@@ -142,14 +142,6 @@ class PackageManager implements SingletonInterface
         } catch (PackageManagerCacheUnavailableException $exception) {
             $this->loadPackageStates();
             $this->initializePackageObjects();
-            $appPackage = new VirtualAppPackage(
-                $this,
-                VirtualAppPackage::APP_PACKAGE_KEY,
-                Environment::getProjectPath() . '/',
-                '',
-            );
-            $this->registerPackage($appPackage);
-            $this->registerActivePackage($appPackage);
             $this->saveToPackageCache();
         }
     }
@@ -162,7 +154,7 @@ class PackageManager implements SingletonInterface
     {
         try {
             return $this->packageCache->getIdentifier();
-        } catch (PackageManagerCacheUnavailableException) {
+        } catch (PackageManagerCacheUnavailableException $e) {
             return null;
         }
     }
@@ -185,7 +177,7 @@ class PackageManager implements SingletonInterface
     /**
      * Attempts to load the package manager states from cache
      *
-     * @throws PackageManagerCacheUnavailableException
+     * @throws Exception\PackageManagerCacheUnavailableException
      */
     protected function loadPackageManagerStatesFromCache()
     {
@@ -423,10 +415,8 @@ class PackageManager implements SingletonInterface
         if ($this->isPackageRegistered($packageKey)) {
             throw new InvalidPackageStateException('Package "' . $packageKey . '" is already registered.', 1338996122);
         }
-        $composerName = $package->getValueFromComposerManifest('name');
-        if ($composerName !== $packageKey) {
-            $this->composerNameToPackageKeyMap[$composerName] = $packageKey;
-        }
+
+        $this->composerNameToPackageKeyMap[$package->getValueFromComposerManifest('name')] = $packageKey;
         $this->packages[$packageKey] = $package;
 
         foreach ($package->getPackageReplacementKeys() as $packageToReplace => $versionConstraint) {
@@ -634,18 +624,16 @@ class PackageManager implements SingletonInterface
      *
      * @return array<array-key|PackageKey, PackageInterface>
      */
-    public function getActivePackages(bool $includeAppPackage = false)
+    public function getActivePackages()
     {
-        if (empty($this->activePackages) && !empty($this->packageStatesConfiguration['packages'])) {
-            foreach ($this->packageStatesConfiguration['packages'] as $packageKey => $packageConfig) {
-                $this->activePackages[$packageKey] = $this->getPackage($packageKey);
+        if (empty($this->activePackages)) {
+            if (!empty($this->packageStatesConfiguration['packages'])) {
+                foreach ($this->packageStatesConfiguration['packages'] as $packageKey => $packageConfig) {
+                    $this->activePackages[$packageKey] = $this->getPackage($packageKey);
+                }
             }
         }
-        $activePackages = $this->activePackages;
-        if (!$includeAppPackage) {
-            unset($activePackages[VirtualAppPackage::APP_PACKAGE_KEY]);
-        }
-        return $activePackages;
+        return $this->activePackages;
     }
 
     /**

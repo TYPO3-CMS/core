@@ -18,37 +18,39 @@ declare(strict_types=1);
 namespace TYPO3\CMS\Core\Package\Resource;
 
 use TYPO3\CMS\Core\Package\PackageInterface;
+use TYPO3\CMS\Core\SystemResource\Identifier\PackageResourceIdentifier;
+use TYPO3\CMS\Core\SystemResource\Type\PublicPackageFile;
 
 /**
  * @internal This is subject to change during v14 development. Do not use.
  */
-final readonly class ResourceCollection implements ResourceCollectionInterface
+final class ResourceCollection implements ResourceCollectionInterface
 {
-    private ?string $iconIdentifier;
-
     public function __construct(
-        PackageInterface $package,
-    ) {
-        $relativeIconPath = $package->getPackageIcon();
-        $this->iconIdentifier = $relativeIconPath !== null ? sprintf(
-            'PKG:%s:%s',
-            $package->getValueFromComposerManifest('name') ?? $package->getPackageKey(),
-            $relativeIconPath,
-        ) : null;
-    }
+        private readonly PackageInterface $package,
+        private readonly ?string $iconPath = null,
+    ) {}
 
     public function isPublicPath(string $relativePath): bool
     {
         return str_starts_with($relativePath, self::PACKAGE_DEFAULT_PUBLIC_DIR);
     }
 
-    public function isValidPath(string $relativePath): bool
+    public function getPackageIcon(): ?PublicPackageFile
     {
-        return true;
-    }
-
-    public function getPackageIcon(): ?string
-    {
-        return $this->iconIdentifier;
+        if ($this->iconPath === null) {
+            return null;
+        }
+        return new PublicPackageFile(
+            new PackageResourceIdentifier(
+                $this->package,
+                $this->iconPath,
+                sprintf(
+                    'PKG:%s:%s',
+                    $this->package->getValueFromComposerManifest('name') ?? $this->package->getPackageKey(),
+                    $this->iconPath
+                )
+            ),
+        );
     }
 }

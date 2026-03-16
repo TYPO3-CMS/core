@@ -74,8 +74,6 @@ class Package implements PackageInterface
      */
     protected MetaData $packageMetaData;
 
-    protected ResourceCollectionInterface $resources;
-
     /**
      * @param PackageManager $packageManager the package manager which knows this package
      * @param string $packageKey Key of this package
@@ -101,7 +99,6 @@ class Package implements PackageInterface
         $this->composerManifest = $packageManager->getComposerManifest($this->packagePath, $ignoreExtEmConf);
         $this->loadFlagsFromComposerManifest();
         $this->createPackageMetaData($packageManager);
-        $this->createResources();
     }
 
     /**
@@ -154,14 +151,12 @@ class Package implements PackageInterface
         }
     }
 
-    protected function createResources(): void
-    {
-        $this->resources = new ResourceCollection($this);
-    }
-
     public function getResources(): ResourceCollectionInterface
     {
-        return $this->resources;
+        return new ResourceCollection(
+            $this,
+            $this->getPackageIcon(),
+        );
     }
 
     /**

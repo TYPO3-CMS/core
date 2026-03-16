@@ -30,7 +30,6 @@ use TYPO3\CMS\Core\Package\PackageManager;
 use TYPO3\CMS\Core\Registry;
 use TYPO3\CMS\Core\Service\Archive\ZipService;
 use TYPO3\CMS\Core\SystemResource\Publishing\SystemResourcePublisherInterface;
-use TYPO3\CMS\Core\SystemResource\SystemResourceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -56,7 +55,6 @@ class LanguagePackService
         protected readonly EventDispatcherInterface $eventDispatcher,
         protected readonly RequestFactory $requestFactory,
         protected readonly LoggerInterface $logger,
-        protected readonly SystemResourceFactory $resourceFactory,
         protected readonly SystemResourcePublisherInterface $resourcePublisher,
     ) {
         $this->locales = GeneralUtility::makeInstance(Locales::class);
@@ -158,8 +156,7 @@ class LanguagePackService
             ];
             $packageIcon = $package->getResources()->getPackageIcon();
             if ($packageIcon !== null) {
-                $iconResource = $this->resourceFactory->createPublicResource($packageIcon);
-                $extension['icon'] = (string)$this->resourcePublisher->generateUri($iconResource, null);
+                $extension['icon'] = (string)$this->resourcePublisher->generateUri($packageIcon, null);
             }
             $extension['packs'] = [];
             foreach ($activeLanguages as $iso) {

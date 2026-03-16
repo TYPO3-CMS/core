@@ -17,8 +17,10 @@ declare(strict_types=1);
 
 namespace TYPO3\CMS\Core\Package\Resource;
 
+use TYPO3\CMS\Core\SystemResource\Type\PublicPackageFile;
+
 /**
- * @internal This is subject to change during v14 development. Do not use.
+ * @internal
  */
 interface ResourceCollectionInterface
 {
@@ -29,7 +31,5 @@ interface ResourceCollectionInterface
 
     public function isPublicPath(string $relativePath): bool;
 
-    public function isValidPath(string $relativePath): bool;
-
-    public function getPackageIcon(): ?string;
+    public function getPackageIcon(): ?PublicPackageFile;
 }

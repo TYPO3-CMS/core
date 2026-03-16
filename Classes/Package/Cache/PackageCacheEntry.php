@@ -23,9 +23,6 @@ use TYPO3\CMS\Core\Package\MetaData;
 use TYPO3\CMS\Core\Package\MetaData\PackageConstraint;
 use TYPO3\CMS\Core\Package\Package;
 use TYPO3\CMS\Core\Package\PackageInterface;
-use TYPO3\CMS\Core\Package\Resource\ResourceCollection;
-use TYPO3\CMS\Core\Package\VirtualAppPackage;
-use TYPO3\CMS\Core\SystemResource\Package\AppResourceCollection;
 
 /**
  * A TYPO3 Package cache entry.
@@ -121,9 +118,6 @@ class PackageCacheEntry
             unserialize($packageData['packageObjects'], [
                 'allowed_classes' => [
                     Package::class,
-                    ResourceCollection::class,
-                    AppResourceCollection::class,
-                    VirtualAppPackage::class,
                     MetaData::class,
                     PackageConstraint::class,
                     \stdClass::class,

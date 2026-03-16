@@ -183,11 +183,9 @@ class Environment
     }
 
     /**
-     * The public web folder where index.php (= the frontend application) is put,
-     * relative to project path, WITH trailing slash.
+     * The public web folder where index.php (= the frontend application) is put, relative to project path, WITH trailing slash.
      * For non-composer installations, this is empty
-     *
-     * @internal do not use outside TYPO3 Core.
+     * @internal do not use outside of TYPO3 Core.
      */
     public static function getRelativePublicPath(): string
     {

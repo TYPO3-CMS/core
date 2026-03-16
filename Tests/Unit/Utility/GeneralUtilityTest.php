@@ -29,7 +29,6 @@ use TYPO3\CMS\Core\Exception;
 use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Package\Package;
 use TYPO3\CMS\Core\Package\PackageManager;
-use TYPO3\CMS\Core\Package\Resource\ResourceCollection;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Core\Tests\Unit\Utility\AccessibleProxies\ExtensionManagementUtilityAccessibleProxy;
 use TYPO3\CMS\Core\Tests\Unit\Utility\Fixtures\ExtendedSingletonClassFixture;
@@ -3031,7 +3030,7 @@ final class GeneralUtilityTest extends UnitTestCase
         // build the dummy package "foo" for use in ExtensionManagementUtility::extPath('foo');
         $package = $this->getMockBuilder(Package::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['getPackagePath', 'getResources'])
+            ->onlyMethods(['getPackagePath'])
             ->getMock();
         $packageManager = $this->getMockBuilder(PackageManager::class)
             ->onlyMethods(['isPackageActive', 'getPackage', 'getActivePackages'])
@@ -3040,9 +3039,6 @@ final class GeneralUtilityTest extends UnitTestCase
         $package
             ->method('getPackagePath')
             ->willReturn('/path/to/foo/');
-        $package
-            ->method('getResources')
-            ->willReturn(new ResourceCollection($package));
         $packageManager
             ->method('getActivePackages')
             ->willReturn(['foo' => $package]);
