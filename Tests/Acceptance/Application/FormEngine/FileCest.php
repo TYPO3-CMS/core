@@ -69,7 +69,7 @@ final class FileCest
 
     public function deleteFalRelation(ApplicationTester $I, ModalDialog $modalDialog): void
     {
-        $deleteButtonSelector = '.tab-content .t3js-editform-delete-file-reference';
+        $deleteButtonSelector = '.tab-content .t3js-editform-delete-inline-record';
         $filename = $I->grabTextFrom(self::$filenameSelector);
 
         $I->click($deleteButtonSelector);
