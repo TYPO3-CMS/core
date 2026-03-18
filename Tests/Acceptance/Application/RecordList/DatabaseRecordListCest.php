@@ -87,9 +87,9 @@ final class DatabaseRecordListCest
 
         // Show search form
         $I->amGoingTo('show the search form');
-        $I->click('.module-docheader-column button.dropdown-toggle');
-        $I->waitForElementVisible('.module-docheader-column .dropdown-menu');
-        $I->click('Show search', '.module-docheader-column .dropdown-menu');
+        $I->click('.module-docheader-buttons button.dropdown-toggle');
+        $I->waitForElementVisible('.module-docheader-buttons .dropdown-menu');
+        $I->click('[title="Show search"]', '.module-docheader-buttons .dropdown-menu');
 
         // Filter language
         $I->amGoingTo('select the default language');
