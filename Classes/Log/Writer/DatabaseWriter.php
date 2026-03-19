@@ -37,9 +37,16 @@ class DatabaseWriter extends AbstractWriter
      *
      * @param string $tableName Database table name
      * @return \TYPO3\CMS\Core\Log\Writer\AbstractWriter
+     * @deprecated since TYPO3 v14.2, will be removed in TYPO3 v15.0. DatabaseWriter is a sys_log writer; implement AbstractWriter for custom tables.
      */
     public function setLogTable($tableName)
     {
+        trigger_error(
+            'DatabaseWriter->setLogTable() has been deprecated in TYPO3 v14.2 and will be removed in v15.0.'
+            . ' DatabaseWriter is a dedicated sys_log writer. To write to a custom table, implement'
+            . ' AbstractWriter and map your fields explicitly in writeLog().',
+            E_USER_DEPRECATED
+        );
         $this->logTable = $tableName;
         return $this;
     }
@@ -48,9 +55,16 @@ class DatabaseWriter extends AbstractWriter
      * Get name of database log table
      *
      * @return string Database table name
+     * @deprecated since TYPO3 v14.2, will be removed in TYPO3 v15.0. DatabaseWriter is a sys_log writer; implement AbstractWriter for custom tables.
      */
     public function getLogTable()
     {
+        trigger_error(
+            'DatabaseWriter->getLogTable() has been deprecated in TYPO3 v14.2 and will be removed in v15.0.'
+            . ' DatabaseWriter is a dedicated sys_log writer. To write to a custom table, implement'
+            . ' AbstractWriter and map your fields explicitly in writeLog().',
+            E_USER_DEPRECATED
+        );
         return $this->logTable;
     }
 

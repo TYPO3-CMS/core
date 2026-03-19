@@ -17,6 +17,7 @@ declare(strict_types=1);
 
 namespace TYPO3\CMS\Core\Tests\Unit\Log\Writer;
 
+use PHPUnit\Framework\Attributes\IgnoreDeprecations;
 use PHPUnit\Framework\Attributes\Test;
 use TYPO3\CMS\Core\Log\Writer\DatabaseWriter;
 use TYPO3\CMS\Core\Utility\StringUtility;
@@ -25,8 +26,15 @@ use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 final class DatabaseWriterTest extends UnitTestCase
 {
     #[Test]
+    #[IgnoreDeprecations]
     public function getTableReturnsPreviouslySetTable(): void
     {
+        $this->expectUserDeprecationMessageMatches(
+            '/DatabaseWriter->setLogTable\(\) has been deprecated in TYPO3 v14\.2/'
+        );
+        $this->expectUserDeprecationMessageMatches(
+            '/DatabaseWriter->getLogTable\(\) has been deprecated in TYPO3 v14\.2/'
+        );
         $logTable = StringUtility::getUniqueId('logtable_');
         $subject = new DatabaseWriter();
         $subject->setLogTable($logTable);
