@@ -319,7 +319,8 @@ readonly class FileIndexRepository
             ->from('sys_file')
             ->where(
                 $queryBuilder->expr()->gt('tstamp', $queryBuilder->quoteIdentifier('last_indexed')),
-                $queryBuilder->expr()->eq('storage', $queryBuilder->createNamedParameter($storage->getUid(), Connection::PARAM_INT))
+                $queryBuilder->expr()->eq('storage', $queryBuilder->createNamedParameter($storage->getUid(), Connection::PARAM_INT)),
+                $queryBuilder->expr()->eq('missing', $queryBuilder->createNamedParameter(0, Connection::PARAM_INT))
             )
             ->orderBy('tstamp', 'ASC')
             ->executeQuery()
