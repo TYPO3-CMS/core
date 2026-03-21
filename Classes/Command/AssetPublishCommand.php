@@ -58,7 +58,7 @@ class AssetPublishCommand extends Command
     {
         $failsafeContainer = $this->bootService->getFailsafeContainer();
         $failsafeResourcePublisher = $failsafeContainer->has(AssetPublishing::class) ? $failsafeContainer->get(SystemResourcePublisherInterface::class) : null;
-        $container = $this->bootService->loadExtLocalconfDatabaseAndExtTables();
+        $container = $this->bootService->loadExtLocalconfDatabaseAndExtTables(false, false);
         $resourcePublisher = $container->get(SystemResourcePublisherInterface::class);
 
         $output->getFormatter()->setStyle('bold', new OutputFormatterStyle(null, null, ['bold']));
