@@ -57,6 +57,6 @@ in the stage area, the :yaml:`formEditorPartials` configuration can still be use
 to provide custom Fluid templates, which will work as before.
 
 For a complete step-by-step tutorial on creating custom form elements, see
-:ref:`Creating a Custom Form Element typo3/cms-form:howtos-custom-form-element>.
+:ref:`Creating a Custom Form Element <typo3/cms-form:howtos-custom-form-element>`.
 
 ..  index:: Backend, ext:form

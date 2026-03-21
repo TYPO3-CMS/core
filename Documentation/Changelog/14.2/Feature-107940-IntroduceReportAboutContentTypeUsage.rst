@@ -12,7 +12,7 @@ Description
 ===========
 
 A new :guilabel:`Content statistics` module has been introduced in the TYPO3
-backend under `guilabel:`Reports`. This module provides data about the usage of
+backend under :guilabel:`Reports`. This module provides data about the usage of
 content elements in the TYPO3 site.
 
 Overview

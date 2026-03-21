@@ -73,7 +73,7 @@ finishers) benefit from site-specific email configuration:
     When editing `settings.yaml` manually, specific numerical array keys
     can be assigned, if needed.
 
-sage
+Usage
 =====
 
 Frontend usage (site-aware)

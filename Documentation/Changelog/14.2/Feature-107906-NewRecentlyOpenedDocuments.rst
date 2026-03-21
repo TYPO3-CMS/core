@@ -22,12 +22,13 @@ Each document entry shows the record icon and title for
 easy identification and quick access.
 
 Key benefits:
-* Displays recently opened documents with icons and titles
-* Provides quick access to ongoing work without searching
-* Offers configurable display limits for different workflow needs
-* Shows document type icons for visual identification
-* Improves editing efficiency by reducing navigation time
-* Displays documents in reverse chronological order (most recent first)
+
+*   Displays recently opened documents with icons and titles
+*   Provides quick access to ongoing work without searching
+*   Offers configurable display limits for different workflow needs
+*   Shows document type icons for visual identification
+*   Improves editing efficiency by reducing navigation time
+*   Displays documents in reverse chronological order (most recent first)
 
 The widget retrieves documents from the FormEngine session data, ensuring that
 only currently open or recently accessed documents are displayed. Deleted records

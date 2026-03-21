@@ -3,7 +3,7 @@
 ..  _feature-108982-1771078311:
 
 ==============================================================
-Feature: #108982 - Introduce rate limiting for extbase actions
+Feature: #108982 - Introduce rate limiting for Extbase actions
 ==============================================================
 
 See :issue:`108982`

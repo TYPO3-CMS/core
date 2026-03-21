@@ -67,7 +67,7 @@ For example, an Extbase model that represents `tt_content` must map both `bodyte
 and `ctype` to be able to use :html:`<f:render.text record="{contentModel}" field="bodytext" />`.
 
 ..  code-block:: html
-    :caption: Blog/Templates/Post/Show.html
+    :caption: Blog/Templates/Post/Show.fluid.html
 
     <f:render.text record="{post}" field="short_description" />
 
