@@ -117,10 +117,7 @@ final class PageRendererTest extends FunctionalTestCase
         $subject->setMetaTag('name', 'DC.Author', '<evil tag>');
         $subject->setMetaTag('property', 'og:image', '/path/to/image1.jpg', [], false);
         $subject->setMetaTag('property', 'og:image', '/path/to/image2.jpg', [], false);
-
-        // Unset meta tag
         $subject->setMetaTag('NaMe', 'randomTag', 'foobar');
-        $subject->removeMetaTag('name', 'RanDoMtAg');
 
         $inlineComment = StringUtility::getUniqueId('comment');
         $subject->addInlineComment($inlineComment);
@@ -187,8 +184,7 @@ final class PageRendererTest extends FunctionalTestCase
         self::assertStringContainsString('<meta name="author" content="foobar">', $renderedString);
         self::assertStringContainsString('<meta http-equiv="refresh" content="5">', $renderedString);
         self::assertStringContainsString('<meta name="dc.author" content="&lt;evil tag&gt;">', $renderedString);
-        self::assertStringNotContainsString('<meta name="randomtag" content="foobar">', $renderedString);
-        self::assertStringNotContainsString('<meta name="randomtag" content="foobar" />', $renderedString);
+        self::assertStringContainsString('<meta name="randomtag" content="foobar">', $renderedString);
         self::assertStringContainsString('<meta name="generator" content="TYPO3 CMS">', $renderedString);
         self::assertStringContainsString('<meta property="og:image" content="/path/to/image1.jpg">', $renderedString);
         self::assertStringContainsString('<meta property="og:image" content="/path/to/image2.jpg">', $renderedString);
@@ -214,8 +210,7 @@ final class PageRendererTest extends FunctionalTestCase
         self::assertStringContainsString('<meta name="author" content="foobar">', $stateBasedRenderedString);
         self::assertStringContainsString('<meta http-equiv="refresh" content="5">', $stateBasedRenderedString);
         self::assertStringContainsString('<meta name="dc.author" content="&lt;evil tag&gt;">', $stateBasedRenderedString);
-        self::assertStringNotContainsString('<meta name="randomtag" content="foobar">', $stateBasedRenderedString);
-        self::assertStringNotContainsString('<meta name="randomtag" content="foobar" />', $stateBasedRenderedString);
+        self::assertStringContainsString('<meta name="randomtag" content="foobar">', $stateBasedRenderedString);
         self::assertStringContainsString('<meta name="generator" content="TYPO3 CMS">', $stateBasedRenderedString);
         self::assertStringContainsString('<meta property="og:image" content="/path/to/image1.jpg">', $stateBasedRenderedString);
         self::assertStringContainsString('<meta property="og:image" content="/path/to/image2.jpg">', $stateBasedRenderedString);
@@ -527,5 +522,62 @@ final class PageRendererTest extends FunctionalTestCase
 
         self::assertArrayHasKey('core.common:notAvailableAbbreviation', $labels);
         self::assertArrayHasKey('core.modules.media:title', $labels);
+    }
+
+    public static function loadJavaScriptLanguageStringsAddsProcessesLabelsToInlineLanguageLabelsDataProvider(): array
+    {
+        return [
+            'No processing' => [
+                'EXT:core/Tests/Functional/Page/Fixtures/locallang_pagerenderer.xlf',
+                '',
+                '',
+                [
+                    'inline_label_first_Key' => 'first',
+                    'inline_label_second_Key' => 'second',
+                    'thirdKey' => 'third',
+                ],
+            ],
+            'Respect $selectionPrefix' => [
+                'EXT:core/Tests/Functional/Page/Fixtures/locallang_pagerenderer.xlf',
+                'inline_',
+                '',
+                [
+                    'inline_label_first_Key' => 'first',
+                    'inline_label_second_Key' => 'second',
+                ],
+            ],
+            'Respect $stripFromSelectionName' => [
+                'EXT:core/Tests/Functional/Page/Fixtures/locallang_pagerenderer.xlf',
+                '',
+                'inline_',
+                [
+                    'label_first_Key' => 'first',
+                    'label_second_Key' => 'second',
+                    'thirdKey' => 'third',
+                ],
+            ],
+            'Respect $selectionPrefix and $stripFromSelectionName' => [
+                'EXT:core/Tests/Functional/Page/Fixtures/locallang_pagerenderer.xlf',
+                'inline_',
+                'inline_label_',
+                [
+                    'first_Key' => 'first',
+                    'second_Key' => 'second',
+                ],
+            ],
+        ];
+    }
+
+    #[DataProvider('loadJavaScriptLanguageStringsAddsProcessesLabelsToInlineLanguageLabelsDataProvider')]
+    #[Test]
+    public function loadJavaScriptLanguageStringsAddsProcessesLabelsToInlineLanguageLabels(string $fileRef, string $selectionPrefix, string $stripFromSelectionName, array $expectation): void
+    {
+        $subject = $this->get(PageRenderer::class);
+        $subject->setLanguage(new Locale(), (new ServerRequest())->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_BE));
+        $subject->addInlineLanguageLabelFile($fileRef, $selectionPrefix, $stripFromSelectionName);
+        $subjectMethodReflection = (new \ReflectionMethod($subject, 'loadJavaScriptLanguageStrings'));
+        $subjectMethodReflection->invoke($subject);
+        $subjectPropertyReflection = (new \ReflectionProperty($subject, 'inlineLanguageLabels'));
+        self::assertEquals($expectation, $subjectPropertyReflection->getValue($subject));
     }
 }

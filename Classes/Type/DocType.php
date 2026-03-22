@@ -17,6 +17,8 @@ declare(strict_types=1);
 
 namespace TYPO3\CMS\Core\Type;
 
+use Psr\Http\Message\ServerRequestInterface;
+
 /**
  * Enum defining all kinds of values needed to decide on how render HTML or XML-compliant code
  * parts of the Page Rendering.
@@ -127,5 +129,11 @@ enum DocType
             'none' => self::none,
             default => self::html5,
         };
+    }
+
+    public static function createFromRequest(?ServerRequestInterface $request): DocType
+    {
+        $typoScriptConfigArray = $request->getAttribute('frontend.typoscript')?->getConfigArray();
+        return DocType::createFromConfigurationKey($typoScriptConfigArray['doctype'] ?? null);
     }
 }

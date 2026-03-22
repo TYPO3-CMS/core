@@ -15,12 +15,12 @@
 
 namespace TYPO3\CMS\Core\Resource\Rendering;
 
-use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\FileInterface;
 use TYPO3\CMS\Core\Resource\FileReference;
 use TYPO3\CMS\Core\Resource\OnlineMedia\Helpers\OnlineMediaHelperInterface;
 use TYPO3\CMS\Core\Resource\OnlineMedia\Helpers\OnlineMediaHelperRegistry;
+use TYPO3\CMS\Core\Type\DocType;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -235,9 +235,11 @@ class YouTubeRenderer implements FileRendererInterface
 
     /**
      * HTML5 deprecated the "frameborder" attribute as everything should be done via styling.
+     *
+     * @todo: This renderer has a dependency to Request / TypoScript. Model this explicitly.
      */
     protected function shouldIncludeFrameBorderAttribute(): bool
     {
-        return GeneralUtility::makeInstance(PageRenderer::class)->getDocType()->shouldIncludeFrameBorderAttribute();
+        return DocType::createFromRequest($GLOBALS['TYPO3_REQUEST'] ?? null)->shouldIncludeFrameBorderAttribute();
     }
 }

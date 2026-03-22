@@ -17,8 +17,7 @@ declare(strict_types=1);
 
 namespace TYPO3\CMS\Core\MetaTag;
 
-use TYPO3\CMS\Core\Page\PageRenderer;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Type\DocType;
 
 /**
  * Handles typical meta tags (non-grouped). Use AbstractMetaTagManager
@@ -83,23 +82,22 @@ final class GenericMetaTagManager implements MetaTagManagerInterface
     /**
      * Render all registered properties of this manager
      */
-    public function renderAllProperties(): string
+    public function renderAllProperties(?DocType $docType = null): string
     {
         $metatags = [];
         foreach (array_keys($this->properties) as $property) {
-            $metatags[] = $this->renderProperty($property);
+            $metatags[] = $this->renderProperty($property, $docType);
         }
-
         return implode(PHP_EOL, $metatags);
     }
 
     /**
      * Render a specific property including subproperties of that property
      */
-    public function renderProperty(string $property): string
+    public function renderProperty(string $property, ?DocType $docType = null): string
     {
         $property = strtolower($property);
-        $endingSlash = GeneralUtility::makeInstance(PageRenderer::class)->getDocType()->isXmlCompliant() ? ' /' : '';
+        $endingSlash = $docType?->isXmlCompliant() ? ' /' : '';
 
         $metaTags = [];
         foreach ((array)$this->properties[$property] as $type => $propertyItems) {

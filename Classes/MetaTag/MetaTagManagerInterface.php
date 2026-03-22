@@ -41,11 +41,15 @@ interface MetaTagManagerInterface
 
     /**
      * Render all registered properties of this manager
+     *
+     * @todo: Consider changing to "renderAllProperties(DocType $doctype): string" in v15 or later
      */
     public function renderAllProperties(): string;
 
     /**
      * Render a meta tag for a specific property
+     *
+     * @todo: Consider changing to "renderProperty(string $property, DocType $doctype): string" in v15 or later
      */
     public function renderProperty(string $property): string;
 

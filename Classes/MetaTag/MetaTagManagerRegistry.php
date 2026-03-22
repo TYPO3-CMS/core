@@ -26,37 +26,30 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  */
 class MetaTagManagerRegistry implements SingletonInterface
 {
-    /**
-     * @var mixed[]
-     */
-    protected $registry = [];
+    protected array $registry = [
+        'generic' => [
+            'module' => GenericMetaTagManager::class,
+        ],
+    ];
 
     /**
      * @var MetaTagManagerInterface[]
      */
-    private $instances = [];
+    private array $instances = [];
 
     /**
      * @var MetaTagManagerInterface[]|null
      */
-    private $managers;
-
-    public function __construct()
-    {
-        $this->registry['generic'] = [
-            'module' => GenericMetaTagManager::class,
-        ];
-    }
+    private ?array $managers = null;
 
     /**
      * Add a MetaTagManager to the registry
      */
-    public function registerManager(string $name, string $className, array $before = ['generic'], array $after = [])
+    public function registerManager(string $name, string $className, array $before = ['generic'], array $after = []): void
     {
         if (!count($before)) {
             $before[] = 'generic';
         }
-
         $this->registry[$name] = [
             'module' => $className,
             'before' => $before,
@@ -76,7 +69,6 @@ class MetaTagManagerRegistry implements SingletonInterface
                 return $manager;
             }
         }
-
         // Just a fallback because the GenericMetaTagManager is also registered in the list of MetaTagManagers
         return GeneralUtility::makeInstance(GenericMetaTagManager::class);
     }
@@ -111,7 +103,7 @@ class MetaTagManagerRegistry implements SingletonInterface
     /**
      * Remove all registered MetaTagManagers
      */
-    public function removeAllManagers()
+    public function removeAllManagers(): void
     {
         $this->registry = [];
         $this->managers = null;

@@ -20,22 +20,11 @@ namespace TYPO3\CMS\Core\Tests\Unit\MetaTag;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use TYPO3\CMS\Core\MetaTag\GenericMetaTagManager;
-use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Type\DocType;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
 final class GenericMetaTagManagerTest extends UnitTestCase
 {
-    protected bool $resetSingletonInstances = true;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $pageRenderer = $this->getMockBuilder(PageRenderer::class)->disableOriginalConstructor()->onlyMethods([])->getMock();
-        GeneralUtility::setSingletonInstance(PageRenderer::class, $pageRenderer);
-    }
-
     #[Test]
     public function checkIfGetAllHandledPropertiesReturnsNonEmptyArray(): void
     {
@@ -261,12 +250,8 @@ final class GenericMetaTagManagerTest extends UnitTestCase
     #[Test]
     public function checkRenderAllPropertiesUsesCorrectEndingSlash(): void
     {
-        $pageRenderer = $this->getMockBuilder(PageRenderer::class)->onlyMethods(['getDocType'])->disableOriginalConstructor()->getMock();
-        $pageRenderer->expects($this->once())->method('getDocType')->willReturn(DocType::xhtml11);
-        GeneralUtility::setSingletonInstance(PageRenderer::class, $pageRenderer);
-
         $manager = new GenericMetaTagManager();
         $manager->addProperty('description', 'Description');
-        self::assertEquals('<meta name="description" content="Description" />', $manager->renderProperty('description'));
+        self::assertEquals('<meta name="description" content="Description" />', $manager->renderProperty('description', DocType::xhtml11));
     }
 }

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file source-language="en" datatype="plaintext" original="EXT:core/Tests/Unit/Localization/Fixtures/locallang.xlf" date="2011-12-21T11:57:33Z" product-name="tests">
+    <header/>
+    <body>
+      <trans-unit id="inline_label_first_Key">
+        <source>first</source>
+      </trans-unit>
+      <trans-unit id="inline_label_second_Key">
+        <source>second</source>
+      </trans-unit>
+      <trans-unit id="thirdKey">
+        <source>third</source>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
