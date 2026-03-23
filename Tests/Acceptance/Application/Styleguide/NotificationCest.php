@@ -33,7 +33,7 @@ final class NotificationCest
         $I->switchToContentFrame();
         $I->click('a[aria-label="Open Component Library: Components module"]');
         $I->waitForText('Open Notifications component');
-        $I->click('Open Notifications component');
+        $I->executeJS("document.querySelector('a[href*=\"action=notifications\"]').click()");
         $I->waitForText('Notifications');
         $I->click('.styleguide-content .styleguide-example button');
         $I->switchToMainFrame();
