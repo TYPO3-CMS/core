@@ -603,6 +603,18 @@
       <trans-unit id="labels.new_page_translation">
         <source>Create new translation</source>
       </trans-unit>
+      <trans-unit id="insert_after">
+        <source>Insert after</source>
+      </trans-unit>
+      <trans-unit id="insert_inside">
+        <source>Insert inside</source>
+      </trans-unit>
+      <trans-unit id="insert_page">
+        <source>Insert page</source>
+      </trans-unit>
+      <trans-unit id="insert_subpage">
+        <source>Insert subpage</source>
+      </trans-unit>
       <trans-unit id="alttext.suggestSearching">
         <source>Searching...</source>
       </trans-unit>
