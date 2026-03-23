@@ -21,6 +21,9 @@
       <trans-unit id="pageSelectPosition">
         <source>Page (select position)</source>
       </trans-unit>
+      <trans-unit id="pageSelectPositionError">
+        <source>Failed to fetch page details. This is likely due to missing permissions.</source>
+      </trans-unit>
       <trans-unit id="goBack">
         <source>Go back</source>
       </trans-unit>
