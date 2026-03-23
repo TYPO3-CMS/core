@@ -678,6 +678,12 @@ return [
                     rowDescription,
                 --div--;core.form.tabs:extended,
             ',
+            'wizardSteps' => [
+                'setup' => [
+                    'title' => 'backend.wizards.page:step.setup',
+                    'fields' => ['title', 'slug', 'nav_title', 'hidden', 'nav_hide'],
+                ],
+            ],
         ],
         (string)\TYPO3\CMS\Core\Domain\Repository\PageRepository::DOKTYPE_BE_USER_SECTION => [
             'allowedRecordTypes' => ['*'],
@@ -711,6 +717,12 @@ return [
                     rowDescription,
                 --div--;core.form.tabs:extended,
             ',
+            'wizardSteps' => [
+                'setup' => [
+                    'title' => 'backend.wizards.page:step.setup',
+                    'fields' => ['title', 'slug', 'nav_title', 'hidden', 'nav_hide'],
+                ],
+            ],
         ],
         (string)\TYPO3\CMS\Core\Domain\Repository\PageRepository::DOKTYPE_LINK => [
             'showitem' => '
@@ -739,6 +751,17 @@ return [
                     rowDescription,
                 --div--;core.form.tabs:extended,
             ',
+            'wizardSteps' => [
+                'setup' => [
+                    'title' => 'backend.wizards.page:step.setup',
+                    'fields' => ['title', 'slug', 'nav_title', 'hidden', 'nav_hide'],
+                ],
+                'links' => [
+                    'title' => 'backend.wizards.page:step.link',
+                    'fields' => ['link'],
+                    'after' => ['setup'],
+                ],
+            ],
         ],
         // shortcut
         (string)\TYPO3\CMS\Core\Domain\Repository\PageRepository::DOKTYPE_SHORTCUT => [
@@ -770,6 +793,17 @@ return [
                     rowDescription,
                 --div--;core.form.tabs:extended,
             ',
+            'wizardSteps' => [
+                'setup' => [
+                    'title' => 'backend.wizards.page:step.setup',
+                    'fields' => ['title', 'slug', 'nav_title', 'hidden', 'nav_hide'],
+                ],
+                'shortcut' => [
+                    'title' => 'backend.wizards.page:step.shortcut',
+                    'fields' => ['shortcut_mode', 'shortcut'],
+                    'after' => ['setup'],
+                ],
+            ],
         ],
         // mount page
         (string)\TYPO3\CMS\Core\Domain\Repository\PageRepository::DOKTYPE_MOUNTPOINT => [
@@ -801,6 +835,17 @@ return [
                     rowDescription,
                 --div--;core.form.tabs:extended,
             ',
+            'wizardSteps' => [
+                'setup' => [
+                    'title' => 'backend.wizards.page:step.setup',
+                    'fields' => ['title', 'slug', 'nav_title', 'hidden', 'nav_hide'],
+                ],
+                'mounting' => [
+                    'title' => 'backend.wizards.page:step.mounting',
+                    'fields' => ['mount_pid_ol', 'mount_pid'],
+                    'after' => ['setup'],
+                ],
+            ],
         ],
         // spacer
         (string)\TYPO3\CMS\Core\Domain\Repository\PageRepository::DOKTYPE_SPACER => [
@@ -822,6 +867,12 @@ return [
                     rowDescription,
                 --div--;core.form.tabs:extended,
             ',
+            'wizardSteps' => [
+                'setup' => [
+                    'title' => 'backend.wizards.page:step.setup',
+                    'fields' => ['title', 'slug', 'nav_title', 'hidden', 'nav_hide'],
+                ],
+            ],
         ],
         // Doktype 254 is a 'Folder' - a general purpose storage folder for whatever you like.
         // In CMS context it's NOT a viewable page. Can contain any element.
@@ -848,6 +899,12 @@ return [
                     rowDescription,
                 --div--;core.form.tabs:extended,
             ',
+            'wizardSteps' => [
+                'setup' => [
+                    'title' => 'backend.wizards.page:step.setup',
+                    'fields' => ['title', 'slug', 'nav_title', 'hidden', 'nav_hide'],
+                ],
+            ],
         ],
     ],
     'palettes' => [
