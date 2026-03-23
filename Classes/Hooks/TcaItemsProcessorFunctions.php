@@ -57,7 +57,7 @@ readonly class TcaItemsProcessorFunctions
             if ($schema->hasCapability(TcaSchemaCapability::AccessAdminOnly)) {
                 continue;
             }
-            $icon = $this->iconFactory->mapRecordTypeToIconIdentifier($tableName, []);
+            $icon = $this->iconFactory->mapRecordTypeToIconIdentifier($tableName, [], $this->tcaSchemaFactory->get($tableName));
             $fieldDefinition['items'][] = ['label' => $schema->getTitle(), 'value' => $tableName, 'icon' => $icon];
         }
     }
@@ -68,7 +68,7 @@ readonly class TcaItemsProcessorFunctions
             if (!$pageType->getValue()) {
                 continue;
             }
-            $icon = $this->iconFactory->mapRecordTypeToIconIdentifier('pages', ['doktype' => $pageType->getValue()]);
+            $icon = $this->iconFactory->mapRecordTypeToIconIdentifier('pages', ['doktype' => $pageType->getValue()], $this->tcaSchemaFactory->get('pages'));
             $fieldDefinition['items'][] = ['label' => $pageType->getLabel(), 'value' => $pageType->getValue(), 'icon' => $icon];
         }
     }
@@ -118,12 +118,12 @@ readonly class TcaItemsProcessorFunctions
                 $sectionHeader = $excludeFieldGroup['sectionHeader'] ?? '';
                 if (!isset($fieldDefinition['items'][$sectionHeader])) {
                     // there is no icon handling for plugins - we take the icon from the table
-                    $icon = $this->iconFactory->mapRecordTypeToIconIdentifier($table, []);
+                    $icon = $this->iconFactory->mapRecordTypeToIconIdentifier($table, [], $this->tcaSchemaFactory->get($table));
                     $fieldDefinition['items'][$sectionHeader] = ['label' => $sectionHeader, 'value' => '--div--', 'icon' => $icon];
                 }
             } elseif (!isset($fieldDefinition['items'][$table])) {
                 // Add header if not yet set for table
-                $icon = $this->iconFactory->mapRecordTypeToIconIdentifier($table, []);
+                $icon = $this->iconFactory->mapRecordTypeToIconIdentifier($table, [], $this->tcaSchemaFactory->get($table));
                 $fieldDefinition['items'][$table] = ['label' => $schema->getTitle(), 'value' => '--div--', 'icon' => $icon];
             }
             $fullField = $excludeFieldGroup['fullField'] ?? '';

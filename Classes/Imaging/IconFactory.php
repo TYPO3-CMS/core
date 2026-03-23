@@ -24,6 +24,8 @@ use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\FolderInterface;
 use TYPO3\CMS\Core\Resource\InaccessibleFolder;
 use TYPO3\CMS\Core\Resource\ResourceInterface;
+use TYPO3\CMS\Core\Schema\TcaSchema;
+use TYPO3\CMS\Core\Schema\TcaSchemaFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Versioning\VersionState;
 
@@ -75,10 +77,14 @@ readonly class IconFactory
     /**
      * This method is used throughout the TYPO3 Backend to show icons for a DB record
      */
-    public function getIconForRecord(string $table, array $row, IconSize $size = IconSize::MEDIUM): Icon
+    public function getIconForRecord(string $table, array $row, IconSize $size = IconSize::MEDIUM, ?TcaSchema $schema = null): Icon
     {
-        $iconIdentifier = $this->mapRecordTypeToIconIdentifier($table, $row);
-        $overlayIdentifier = $this->mapRecordTypeToOverlayIdentifier($table, $row);
+        if ($schema === null) {
+            $tcaSchemaFactory = GeneralUtility::makeInstance(TcaSchemaFactory::class);
+            $schema = $tcaSchemaFactory->get($table);
+        }
+        $iconIdentifier = $this->mapRecordTypeToIconIdentifier($table, $row, $schema);
+        $overlayIdentifier = $this->mapRecordTypeToOverlayIdentifier($table, $row, $schema);
         return $this->getIcon($iconIdentifier, $size, $overlayIdentifier);
     }
 
@@ -95,16 +101,16 @@ readonly class IconFactory
      * @param string $table The TCA table
      * @param array $row The selected record
      * @internal
-     * @TODO: make this method protected, after FormEngine doesn't need it anymore.
+     * @todo: Protect method when FormEngine doesn't need it anymore.
      * @return string The icon identifier string for the icon of that DB record
      */
-    public function mapRecordTypeToIconIdentifier(string $table, array $row): string
+    public function mapRecordTypeToIconIdentifier(string $table, array $row, TcaSchema $schema): string
     {
         $recordType = [];
         $ref = null;
 
-        if (isset($GLOBALS['TCA'][$table]['ctrl']['typeicon_column'])) {
-            $column = $GLOBALS['TCA'][$table]['ctrl']['typeicon_column'];
+        if (isset($schema->getRawConfiguration()['typeicon_column'])) {
+            $column = $schema->getRawConfiguration()['typeicon_column'];
             if (isset($row[$column])) {
                 // even if not properly documented the value of the typeicon_column in a record could be
                 // an array (multiselect) in typeicon_classes a key could consist of a comma-separated string "foo,bar"
@@ -125,14 +131,14 @@ readonly class IconFactory
                     $recordType[2] = $this->getRecordTypeForPageType(
                         $recordType[1],
                         'hideinmenu',
-                        $table
+                        $schema
                     );
                 }
                 if (($row['is_siteroot'] ?? 0) > 0) {
                     $recordType[3] = $this->getRecordTypeForPageType(
                         $recordType[1],
                         'root',
-                        $table
+                        $schema
                     );
                 }
                 if (!empty($row['module'])) {
@@ -151,38 +157,38 @@ readonly class IconFactory
                         $recordType[4] = $this->getRecordTypeForPageType(
                             $recordType[1],
                             'contentFromPid-root',
-                            $table
+                            $schema
                         );
                     } else {
                         $suffix = (int)$row['nav_hide'] === 0 ? 'contentFromPid' : 'contentFromPid-hideinmenu';
-                        $recordType[4] = $this->getRecordTypeForPageType($recordType[1], $suffix, $table, 'page');
+                        $recordType[4] = $this->getRecordTypeForPageType($recordType[1], $suffix, $schema, 'page');
                     }
                 }
             }
-            if (isset($GLOBALS['TCA'][$table]['ctrl']['typeicon_classes'])
-                && is_array($GLOBALS['TCA'][$table]['ctrl']['typeicon_classes'])
+            if (isset($schema->getRawConfiguration()['typeicon_classes'])
+                && is_array($schema->getRawConfiguration()['typeicon_classes'])
             ) {
                 foreach ($recordType as $key => $type) {
-                    if (isset($GLOBALS['TCA'][$table]['ctrl']['typeicon_classes'][$type])) {
-                        $recordType[$key] = $GLOBALS['TCA'][$table]['ctrl']['typeicon_classes'][$type];
+                    if (isset($schema->getRawConfiguration()['typeicon_classes'][$type])) {
+                        $recordType[$key] = $schema->getRawConfiguration()['typeicon_classes'][$type];
                     } else {
                         unset($recordType[$key]);
                     }
                 }
-                $recordType[0] = $GLOBALS['TCA'][$table]['ctrl']['typeicon_classes']['default'] ?? '';
-                if (isset($GLOBALS['TCA'][$table]['ctrl']['typeicon_classes']['mask'])
+                $recordType[0] = $schema->getRawConfiguration()['typeicon_classes']['default'] ?? '';
+                if (isset($schema->getRawConfiguration()['typeicon_classes']['mask'])
                     && isset($row[$column]) && is_string($row[$column])
                 ) {
                     $recordType[5] = str_replace(
                         '###TYPE###',
                         $row[$column] ?? '',
-                        $GLOBALS['TCA'][$table]['ctrl']['typeicon_classes']['mask']
+                        $schema->getRawConfiguration()['typeicon_classes']['mask']
                     );
                 }
-                if (isset($GLOBALS['TCA'][$table]['ctrl']['typeicon_classes']['userFunc'])) {
+                if (isset($schema->getRawConfiguration()['typeicon_classes']['userFunc'])) {
                     $parameters = ['row' => $row];
                     $recordType[6] = GeneralUtility::callUserFunction(
-                        $GLOBALS['TCA'][$table]['ctrl']['typeicon_classes']['userFunc'],
+                        $schema->getRawConfiguration()['typeicon_classes']['userFunc'],
                         $parameters,
                         $ref
                     );
@@ -194,10 +200,10 @@ readonly class IconFactory
                 unset($type);
                 $recordType[0] = 'tcarecords-' . $table . '-default';
             }
-        } elseif (isset($GLOBALS['TCA'][$table]['ctrl']['typeicon_classes'])
-            && is_array($GLOBALS['TCA'][$table]['ctrl']['typeicon_classes'])
+        } elseif (isset($schema->getRawConfiguration()['typeicon_classes'])
+            && is_array($schema->getRawConfiguration()['typeicon_classes'])
         ) {
-            $recordType[0] = $GLOBALS['TCA'][$table]['ctrl']['typeicon_classes']['default'];
+            $recordType[0] = $schema->getRawConfiguration()['typeicon_classes']['default'];
         } else {
             $recordType[0] = 'tcarecords-' . $table . '-default';
         }
@@ -217,12 +223,12 @@ readonly class IconFactory
      * Returns recordType for icon based on a typeName and a suffix.
      * Fallback to page as typeName if resulting type is not configured.
      */
-    protected function getRecordTypeForPageType(string $typeName, string $suffix, string $table, string $fallbackTypeName = '1'): string
+    protected function getRecordTypeForPageType(string $typeName, string $suffix, TcaSchema $schema, string $fallbackTypeName = '1'): string
     {
         $recordType = $typeName . '-' . $suffix;
 
         // Check if typeicon class exists. If not fallback to page as typeName
-        if (!isset($GLOBALS['TCA'][$table]['ctrl']['typeicon_classes'][$recordType])) {
+        if (!isset($schema->getRawConfiguration()['typeicon_classes'][$recordType])) {
             $recordType = $fallbackTypeName . '-' . $suffix;
         }
         return $recordType;
@@ -237,9 +243,9 @@ readonly class IconFactory
      * @param array $row The selected record
      * @return string The status with the highest priority
      */
-    protected function mapRecordTypeToOverlayIdentifier(string $table, array $row): string
+    protected function mapRecordTypeToOverlayIdentifier(string $table, array $row, TcaSchema $schema): string
     {
-        $tcaCtrl = $GLOBALS['TCA'][$table]['ctrl'] ?? [];
+        $tcaCtrl = $schema->getRawConfiguration();
         // Calculate for a given record the actual visibility at the moment
         $status = [
             'hidden' => false,

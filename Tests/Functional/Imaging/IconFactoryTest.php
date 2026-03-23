@@ -29,6 +29,8 @@ use TYPO3\CMS\Core\Imaging\IconSize;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\ResourceStorage;
+use TYPO3\CMS\Core\Schema\Field\FieldCollection;
+use TYPO3\CMS\Core\Schema\TcaSchema;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 
 final class IconFactoryTest extends FunctionalTestCase
@@ -365,7 +367,7 @@ final class IconFactoryTest extends FunctionalTestCase
         $GLOBALS['TCA']['']['ctrl'] = [];
         self::assertStringContainsString(
             '<span class="t3js-icon icon icon-size-medium icon-state-default icon-default-not-found" data-identifier="default-not-found" aria-hidden="true">',
-            $this->subject->getIconForRecord('', [])->render()
+            $this->subject->getIconForRecord('', [], IconSize::MEDIUM, new TcaSchema('', new FieldCollection([]), []))->render()
         );
     }
 
