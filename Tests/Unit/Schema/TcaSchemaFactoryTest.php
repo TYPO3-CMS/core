@@ -22,6 +22,7 @@ use PHPUnit\Framework\Attributes\Test;
 use TYPO3\CMS\Core\Cache\Frontend\PhpFrontend;
 use TYPO3\CMS\Core\Configuration\FlexForm\FlexFormTools;
 use TYPO3\CMS\Core\Schema\Exception\InvalidSchemaTypeException;
+use TYPO3\CMS\Core\Schema\Exception\UndefinedFieldException;
 use TYPO3\CMS\Core\Schema\FieldTypeFactory;
 use TYPO3\CMS\Core\Schema\RelationMapBuilder;
 use TYPO3\CMS\Core\Schema\TcaSchemaBuilder;
@@ -422,6 +423,54 @@ final class TcaSchemaFactoryTest extends UnitTestCase
         self::assertSame([['value' => 'A', 'label' => 'A']], $subject->get($subSchemaTypeInformation->getForeignSchemaName())->getField($subSchemaTypeInformation->getForeignFieldName())->getConfiguration()['items']);
     }
 
+    public function subSchemaWithWizardSteps(): void
+    {
+        $cacheMock = $this->createMock(PhpFrontend::class);
+        $cacheMock->method('has')->with(self::isString())->willReturn(false);
+        $subject = new TcaSchemaFactory(
+            new TcaSchemaBuilder(
+                new RelationMapBuilder($this->createMock(FlexFormTools::class)),
+                new FieldTypeFactory(),
+            ),
+            '',
+            $cacheMock
+        );
+
+        $subject->load([
+            'myTable' => [
+                'ctrl' => [
+                    'title' => 'table_title',
+                    'type' => 'record_type',
+                ],
+                'columns' => [
+                    'record_type' => [
+                        'config' => ['type' => 'select'],
+                    ],
+                    'my_other_field' => [
+                        'config' => ['type' => 'input'],
+                    ],
+                ],
+                'types' => [
+                    'type1' => [
+                        'showitem' => 'record_type,my_other_field',
+                        'wizardSteps' => [
+                            'setup' => [
+                                'title' => 'Setup step',
+                                'fields' => ['record_type', 'my_other_field'],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $subSchema = $subject->get('myTable')->getSubSchema('type1');
+        self::assertCount(1, $subSchema->getWizardSteps());
+        self::assertEquals('Setup step', $subSchema->getWizardSteps()[0]->getTitle());
+        self::assertEquals(['record_type', 'my_other_field'], $subSchema->getWizardSteps()[0]->getFields()->getNames());
+        self::assertEquals('setup', $subSchema->getWizardSteps()[0]->getIdentifier());
+    }
+
     #[Test]
     public function throwsExceptionForTypelessSchema(): void
     {
@@ -543,5 +592,131 @@ final class TcaSchemaFactoryTest extends UnitTestCase
         $this->expectExceptionCode(1749241444);
 
         $schema->getSubSchemaTypeInformation();
+    }
+
+    #[Test]
+    public function throwsExceptionForWizardStepFieldNotInSchema(): void
+    {
+        $cacheMock = $this->createMock(PhpFrontend::class);
+        $cacheMock->method('has')->with(self::isString())->willReturn(false);
+        $subject = new TcaSchemaFactory(
+            new TcaSchemaBuilder(
+                new RelationMapBuilder($this->createMock(FlexFormTools::class)),
+                new FieldTypeFactory(),
+            ),
+            '',
+            $cacheMock
+        );
+
+        $this->expectException(UndefinedFieldException::class);
+        $this->expectExceptionCode(1774355993);
+        $subject->load([
+            'myTable' => [
+                'ctrl' => [
+                    'title' => 'table_title',
+                    'type' => 'record_type',
+                ],
+                'columns' => [
+                    'record_type' => [
+                        'config' => ['type' => 'select'],
+                    ],
+                ],
+                'types' => [
+                    'type1' => [
+                        'title' => 'type1_title',
+                        'showitem' => 'record_type',
+                        'wizardSteps' => [
+                            'setup' => ['fields' => ['myNonExistingField']],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    #[Test]
+    public function throwsExceptionForWizardStepFieldNotInShowitem(): void
+    {
+        $cacheMock = $this->createMock(PhpFrontend::class);
+        $cacheMock->method('has')->with(self::isString())->willReturn(false);
+        $subject = new TcaSchemaFactory(
+            new TcaSchemaBuilder(
+                new RelationMapBuilder($this->createMock(FlexFormTools::class)),
+                new FieldTypeFactory(),
+            ),
+            '',
+            $cacheMock
+        );
+
+        $this->expectException(UndefinedFieldException::class);
+        $this->expectExceptionCode(1774355993);
+        $subject->load([
+            'myTable' => [
+                'ctrl' => [
+                    'title' => 'table_title',
+                    'type' => 'record_type',
+                ],
+                'columns' => [
+                    'record_type' => [
+                        'config' => ['type' => 'select'],
+                    ],
+                    'not_in_showitem' => [
+                        'config' => ['type' => 'input'],
+                    ],
+                ],
+                'types' => [
+                    'type1' => [
+                        'title' => 'type1_title',
+                        'showitem' => 'record_type',
+                        'wizardSteps' => [
+                            'setup' => ['fields' => ['record_type', 'not_in_showitem']],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    #[Test]
+    public function throwsExceptionForWizardStepFieldsNotConfigured(): void
+    {
+        $cacheMock = $this->createMock(PhpFrontend::class);
+        $cacheMock->method('has')->with(self::isString())->willReturn(false);
+        $subject = new TcaSchemaFactory(
+            new TcaSchemaBuilder(
+                new RelationMapBuilder($this->createMock(FlexFormTools::class)),
+                new FieldTypeFactory(),
+            ),
+            '',
+            $cacheMock
+        );
+
+        $this->expectException(\UnexpectedValueException::class);
+        $this->expectExceptionCode(1774356281);
+        $subject->load([
+            'myTable' => [
+                'ctrl' => [
+                    'title' => 'table_title',
+                    'type' => 'record_type',
+                ],
+                'columns' => [
+                    'record_type' => [
+                        'config' => ['type' => 'select'],
+                    ],
+                    'not_in_showitem' => [
+                        'config' => ['type' => 'input'],
+                    ],
+                ],
+                'types' => [
+                    'type1' => [
+                        'title' => 'type1_title',
+                        'showitem' => 'record_type',
+                        'wizardSteps' => [
+                            'setup' => [],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
     }
 }

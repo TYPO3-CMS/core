@@ -18,7 +18,11 @@ declare(strict_types=1);
 namespace TYPO3\CMS\Core\Schema;
 
 use TYPO3\CMS\Core\Schema\Exception\FieldTypeNotAvailableException;
+use TYPO3\CMS\Core\Schema\Exception\UndefinedFieldException;
 use TYPO3\CMS\Core\Schema\Field\FieldCollection;
+use TYPO3\CMS\Core\Schema\Field\FieldTypeInterface;
+use TYPO3\CMS\Core\Schema\Struct\WizardStep;
+use TYPO3\CMS\Core\Service\DependencyOrderingService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -127,11 +131,15 @@ final readonly class TcaSchemaBuilder
                     $subSchemaFields[$fieldName] = $field;
                 }
 
+                $subSchemaFieldCollection = new FieldCollection($subSchemaFields);
                 $subSchemata[$subSchemaName] = new TcaSchema(
                     $schemaName . '.' . $subSchemaName,
-                    new FieldCollection($subSchemaFields),
+                    $subSchemaFieldCollection,
                     // Merge parts from the "types" section into the ctrl section of the main schema
                     array_replace_recursive($schemaConfiguration, $subSchemaDefinition),
+                    null,
+                    [],
+                    $this->getOrderedWizardSteps($subSchemaDefinition, $subSchemaFieldCollection, $subSchemaName)
                 );
             }
         } elseif (($schemaDefinition['types'] ?? []) !== []) {
@@ -201,5 +209,31 @@ final readonly class TcaSchemaBuilder
             $fieldConfiguration['label'] = $fieldLabel;
         }
         return $fieldConfiguration;
+    }
+
+    /**
+     * @throws UndefinedFieldException
+     */
+    private function getOrderedWizardSteps(array $schemaDefinition, FieldCollection $fieldCollection, string $subSchemaName): array
+    {
+        if (!isset($schemaDefinition['wizardSteps'])) {
+            return [];
+        }
+
+        $wizardSteps = [];
+        $dependencyOrderingService = GeneralUtility::makeInstance(DependencyOrderingService::class);
+        $orderedWizardSteps = $dependencyOrderingService->orderByDependencies($schemaDefinition['wizardSteps']);
+
+        foreach ($orderedWizardSteps as $stepIdentifier => $wizardStep) {
+            $fields = $wizardStep['fields'] ?? throw new \UnexpectedValueException('Wizard step fields are missing', 1774356281);
+            $undefinedFields = array_diff($fields, $fieldCollection->getNames());
+            if ($undefinedFields !== []) {
+                throw new UndefinedFieldException(sprintf('Wizard step fields: "%s" are not configured in TCA schema: "%s"', implode(',', $undefinedFields), $subSchemaName), 1774355993);
+            }
+
+            $wizardFieldCollection = array_filter(iterator_to_array($fieldCollection), fn(FieldTypeInterface $field) => in_array($field->getName(), $fields));
+            $wizardSteps[$stepIdentifier] = new WizardStep($stepIdentifier, $wizardStep['title'] ?? '', new FieldCollection($wizardFieldCollection));
+        }
+        return $wizardSteps;
     }
 }

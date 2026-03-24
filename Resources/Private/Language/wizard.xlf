@@ -24,6 +24,9 @@
       <trans-unit id="wizard.processing.title">
         <source>Processing...</source>
       </trans-unit>
+      <trans-unit id="wizard.step.required">
+        <source>Required fields</source>
+      </trans-unit>
     </body>
   </file>
 </xliff>

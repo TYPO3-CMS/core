@@ -26,6 +26,7 @@ use TYPO3\CMS\Core\Schema\Field\FieldCollection;
 use TYPO3\CMS\Core\Schema\Field\FieldTypeInterface;
 use TYPO3\CMS\Core\Schema\Field\LanguageFieldType;
 use TYPO3\CMS\Core\Schema\Field\RelationalFieldTypeInterface;
+use TYPO3\CMS\Core\Schema\Struct\WizardStep;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -40,6 +41,8 @@ readonly class TcaSchema implements SchemaInterface
         protected ?SchemaCollection $subSchemata = null,
         /** @var PassiveRelation[] */
         protected array $passiveRelations = [],
+        /** @var list<WizardStep> $wizardSteps */
+        protected array $wizardSteps = [],
     ) {}
 
     public function getName(): string
@@ -302,6 +305,11 @@ readonly class TcaSchema implements SchemaInterface
             }
         }
         return $relations;
+    }
+
+    public function getWizardSteps(): array
+    {
+        return $this->wizardSteps;
     }
 
     public static function __set_state(array $state): self

@@ -2,9 +2,9 @@
 
 ..  _feature-109271-1742217000:
 
-================================================================================
-Feature: #109271 - Add TCA configuration for dynamic page creation wizard steps
-================================================================================
+=======================================================================
+Feature: #109271 - Add TCA configuration for page creation wizard steps
+=======================================================================
 
 See :issue:`109271`
 
@@ -14,10 +14,12 @@ Description
 The page creation wizard now supports a dynamic configuration
 for its steps via TCA.
 This allows to define which fields are displayed in which step of the wizard,
-depending on the pagetype.
+depending on the doktype.
 
-A new TCA configuration option `wizardSteps` is introduced for the `pages` table.
-Each step is defined by a unique key and contains a title and a list of fields to be displayed.
+A new TCA configuration option `wizardSteps` is introduced.
+It currently only works for the table `pages`.
+Each step is defined by a unique key and contains a title and a list of fields
+to be displayed.
 
 The steps are sorted, allowing steps to be positioned relative to each other
 using the `after` or `before` keys.
@@ -29,7 +31,7 @@ configured wizard step, a fallback step name is automatically appended at the en
 Example
 --------
 
-Defining wizard steps for a custom page type in TCA:
+Defining wizard steps for a custom doktype in TCA:
 
 ..  code-block:: php
     :caption: EXT:my_extension/Configuration/TCA/Overrides/pages.php

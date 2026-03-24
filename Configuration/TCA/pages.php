@@ -870,7 +870,7 @@ return [
             'wizardSteps' => [
                 'setup' => [
                     'title' => 'backend.wizards.page:step.setup',
-                    'fields' => ['title', 'slug', 'nav_title', 'hidden', 'nav_hide'],
+                    'fields' => ['title', 'slug', 'hidden', 'nav_hide'],
                 ],
             ],
         ],
@@ -902,7 +902,7 @@ return [
             'wizardSteps' => [
                 'setup' => [
                     'title' => 'backend.wizards.page:step.setup',
-                    'fields' => ['title', 'slug', 'nav_title', 'hidden', 'nav_hide'],
+                    'fields' => ['title', 'slug', 'hidden'],
                 ],
             ],
         ],
