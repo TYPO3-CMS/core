@@ -132,16 +132,7 @@ class PackageManager implements SingletonInterface
      */
     private function populateFrameworkPackageNames(): void
     {
-        $typo3Json = file_get_contents(__DIR__ . '/../../../../../composer.json');
-        if ($typo3Json === false) {
-            throw new \RuntimeException('The main TYPO3 composer.json file was not found.', 1774091461);
-        }
-        $this->frameworkPackageNames = array_keys(
-            array_filter(
-                json_decode($typo3Json, true, 512, JSON_THROW_ON_ERROR)['replace'] ?? [],
-                static fn($value) => $value === 'self.version'
-            )
-        );
+        $this->frameworkPackageNames = require __DIR__ . '/../../Resources/Private/Php/framework-packages.php';
     }
 
     /**

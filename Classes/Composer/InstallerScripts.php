@@ -42,12 +42,13 @@ class InstallerScripts implements InstallerScriptsRegistration
             $source = dirname(__DIR__, 2) . '/Resources/Private/Php/cli.php';
             $target = 'typo3/sysext/core/bin/typo3';
             $scriptDispatcher->addInstallerScript(new CliEntryPoint($source, $target));
+            $scriptDispatcher->addInstallerScript(new FrameworkPackageWriter());
         } else {
             // Provide package artifact in regular composer mode (not needed for monorepo classic mode)
             $scriptDispatcher->addInstallerScript(
                 new PackageArtifactBuilder()
             );
-            if (!(bool)getenv('TYPO3_SKIP_ASSET_PUBLISH')) {
+            if (!getenv('TYPO3_SKIP_ASSET_PUBLISH')) {
                 $scriptDispatcher->addInstallerScript(
                     new ConsoleCommand(
                         ['asset:publish']
