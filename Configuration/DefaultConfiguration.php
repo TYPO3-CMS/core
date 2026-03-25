@@ -830,9 +830,17 @@ return [
                             \TYPO3\CMS\Backend\Form\FormDataProvider\TcaSelectTreeItems::class,
                         ],
                     ],
+                    \TYPO3\CMS\Backend\Form\FormDataProvider\TcaColumnsRemoveEmptyRelations::class => [
+                        'depends' => [
+                            \TYPO3\CMS\Backend\Form\FormDataProvider\TcaSelectItems::class,
+                            \TYPO3\CMS\Backend\Form\FormDataProvider\TcaSelectTreeItems::class,
+                            \TYPO3\CMS\Backend\Form\FormDataProvider\TcaCategory::class,
+                            \TYPO3\CMS\Backend\Form\FormDataProvider\TcaLanguage::class,
+                        ],
+                    ],
                     \TYPO3\CMS\Backend\Form\FormDataProvider\TcaTablePermission::class => [
                         'depends' => [
-                            \TYPO3\CMS\Backend\Form\FormDataProvider\TcaCategory::class,
+                            \TYPO3\CMS\Backend\Form\FormDataProvider\TcaColumnsRemoveEmptyRelations::class,
                         ],
                     ],
                     \TYPO3\CMS\Backend\Form\FormDataProvider\TcaInlineConfiguration::class => [

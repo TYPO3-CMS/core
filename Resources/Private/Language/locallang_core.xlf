@@ -1539,6 +1539,9 @@
       <trans-unit id="notifications.button.clearAll">
         <source>Clear all</source>
       </trans-unit>
+      <trans-unit id="labels.noSelectableItemsAvailable">
+        <source>No selectable items available. Check TCA, related records and TSconfig.</source>
+      </trans-unit>
     </body>
   </file>
 </xliff>
