@@ -14,6 +14,7 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use TYPO3\CMS\Core\Attribute\AsAllowedCallable;
 use TYPO3\CMS\Core\Attribute\AsEventListener;
+use TYPO3\CMS\Core\Attribute\AsModuleAccessGate;
 use TYPO3\CMS\Core\Attribute\UpgradeWizard;
 use TYPO3\CMS\Core\SystemResource\Publishing\FileSystem\FileSystemPublisherInterface;
 
@@ -121,6 +122,17 @@ return static function (ContainerConfigurator $container, ContainerBuilder $cont
         UpgradeWizard::class,
         static function (ChildDefinition $definition, UpgradeWizard $attribute): void {
             $definition->addTag(UpgradeWizard::TAG_NAME, ['identifier' => $attribute->identifier]);
+        },
+    );
+
+    $containerBuilder->registerAttributeForAutoconfiguration(
+        AsModuleAccessGate::class,
+        static function (ChildDefinition $definition, AsModuleAccessGate $attribute): void {
+            $definition->addTag(AsModuleAccessGate::TAG_NAME, [
+                'identifier' => $attribute->identifier,
+                'before' => implode(',', $attribute->before),
+                'after' => implode(',', $attribute->after),
+            ]);
         },
     );
 
