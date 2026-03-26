@@ -19,9 +19,11 @@ namespace TYPO3\CMS\Core\Tests\Unit\Log\Processor;
 
 use PHPUnit\Framework\Attributes\Test;
 use Psr\Log\LogLevel;
+use TYPO3\CMS\Core\Core\SystemEnvironmentBuilder;
+use TYPO3\CMS\Core\Http\NormalizedParams;
+use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Log\LogRecord;
 use TYPO3\CMS\Core\Log\Processor\WebProcessor;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
 final class WebProcessorTest extends UnitTestCase
@@ -29,19 +31,37 @@ final class WebProcessorTest extends UnitTestCase
     #[Test]
     public function webProcessorAddsWebDataToLogRecord(): void
     {
-        $_SERVER['REQUEST_URI'] = '';
-        $_SERVER['SCRIPT_NAME'] = '';
-        $_SERVER['REMOTE_ADDR'] = '';
-        $_SERVER['QUERY_STRING'] = '';
-        $_SERVER['SSL_SESSION_ID'] = '';
-        $_SERVER['HTTP_HOST'] = 'acme.com';
+        $normalizedParams = NormalizedParams::createFromServerParams([
+            'HTTP_HOST' => 'acme.com',
+            'REQUEST_URI' => '/index.php?id=42',
+            'SCRIPT_NAME' => '/index.php',
+            'REMOTE_ADDR' => '127.0.0.1',
+            'QUERY_STRING' => 'id=42',
+        ]);
+        $request = (new ServerRequest('https://acme.com/index.php?id=42'))
+            ->withAttribute('normalizedParams', $normalizedParams)
+            ->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_BE);
+        $GLOBALS['TYPO3_REQUEST'] = $request;
 
-        $environmentVariables = GeneralUtility::getIndpEnv('_ARRAY');
         $logRecord = new LogRecord('test.core.log', LogLevel::DEBUG, 'test');
         $processor = new WebProcessor();
         $logRecord = $processor->processLogRecord($logRecord);
-        foreach ($environmentVariables as $key => $value) {
-            self::assertEquals($value, $logRecord['data'][$key]);
-        }
+
+        self::assertSame('acme.com', $logRecord['data']['HTTP_HOST']);
+        self::assertSame('127.0.0.1', $logRecord['data']['REMOTE_ADDR']);
+        self::assertSame('/index.php?id=42', $logRecord['data']['REQUEST_URI']);
+        self::assertSame('id=42', $logRecord['data']['QUERY_STRING']);
+    }
+
+    #[Test]
+    public function webProcessorAddsNoDataWithoutRequest(): void
+    {
+        unset($GLOBALS['TYPO3_REQUEST']);
+
+        $logRecord = new LogRecord('test.core.log', LogLevel::DEBUG, 'test');
+        $processor = new WebProcessor();
+        $logRecord = $processor->processLogRecord($logRecord);
+
+        self::assertSame([], $logRecord['data']);
     }
 }

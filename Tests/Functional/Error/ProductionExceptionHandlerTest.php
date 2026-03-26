@@ -24,7 +24,6 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerTrait;
 use TYPO3\CMS\Core\Error\Http\StatusException;
 use TYPO3\CMS\Core\Error\ProductionExceptionHandler;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 
 final class ProductionExceptionHandlerTest extends FunctionalTestCase
@@ -128,8 +127,13 @@ final class ProductionExceptionHandlerTest extends FunctionalTestCase
         };
         $subject->setLogger($logger);
 
-        GeneralUtility::setIndpEnv('TYPO3_REQUEST_URL', $originalUrl);
         $GLOBALS['BE_USER'] = null;
+
+        $urlParts = parse_url($originalUrl);
+        $_SERVER['HTTP_HOST'] = $urlParts['host'] ?? 'localhost';
+        $_SERVER['REQUEST_URI'] = ($urlParts['path'] ?? '/') . (isset($urlParts['query']) ? '?' . $urlParts['query'] : '');
+        $_SERVER['SCRIPT_NAME'] = $urlParts['path'] ?? '/';
+        $_SERVER['HTTPS'] = ($urlParts['scheme'] ?? 'http') === 'https' ? 'on' : '';
 
         $exception = new \Exception('message', 1476049365);
         ob_start();

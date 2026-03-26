@@ -22,6 +22,7 @@ use Psr\Log\LogLevel;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Http\ApplicationType;
+use TYPO3\CMS\Core\Http\NormalizedParams;
 use TYPO3\CMS\Core\Log\LogManager;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Messaging\FlashMessageService;
@@ -261,7 +262,7 @@ class ErrorHandler implements ErrorHandlerInterface, LoggerAwareInterface
                     'level' => $logLevel,
                     'details' => str_replace('%', '%%', $logMessage),
                     'log_data' => empty($data) ? '' : json_encode($data),
-                    'IP' => (string)GeneralUtility::getIndpEnv('REMOTE_ADDR'),
+                    'IP' => NormalizedParams::createFromServerParams($_SERVER)->getRemoteAddress(),
                     'tstamp' => $GLOBALS['EXEC_TIME'],
                     'workspace' => $workspace,
                 ]

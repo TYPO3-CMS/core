@@ -36,6 +36,7 @@ use TYPO3\CMS\Core\Configuration\Tca\TcaFactory;
 use TYPO3\CMS\Core\Core\Event\BootCompletedEvent;
 use TYPO3\CMS\Core\DependencyInjection\Cache\ContainerBackend;
 use TYPO3\CMS\Core\DependencyInjection\ContainerBuilder;
+use TYPO3\CMS\Core\Http\NormalizedParams;
 use TYPO3\CMS\Core\Log\LogManager;
 use TYPO3\CMS\Core\Package\Cache\ComposerPackageArtifact;
 use TYPO3\CMS\Core\Package\Cache\PackageCacheInterface;
@@ -387,10 +388,8 @@ class Bootstrap
 
     /**
      * Configure and set up exception and error handling
-     *
-     * @throws \RuntimeException
      */
-    protected static function initializeErrorHandling()
+    protected static function initializeErrorHandling(): void
     {
         $productionExceptionHandlerClassName = $GLOBALS['TYPO3_CONF_VARS']['SYS']['productionExceptionHandler'];
         $debugExceptionHandlerClassName = $GLOBALS['TYPO3_CONF_VARS']['SYS']['debugExceptionHandler'];
@@ -402,7 +401,7 @@ class Bootstrap
         $displayErrorsSetting = (int)$GLOBALS['TYPO3_CONF_VARS']['SYS']['displayErrors'];
         switch ($displayErrorsSetting) {
             case -1:
-                $ipMatchesDevelopmentSystem = GeneralUtility::cmpIP(GeneralUtility::getIndpEnv('REMOTE_ADDR'), $GLOBALS['TYPO3_CONF_VARS']['SYS']['devIPmask']);
+                $ipMatchesDevelopmentSystem = GeneralUtility::cmpIP(NormalizedParams::createFromServerParams($_SERVER)->getRemoteAddress(), $GLOBALS['TYPO3_CONF_VARS']['SYS']['devIPmask']);
                 $exceptionHandlerClassName = $ipMatchesDevelopmentSystem ? $debugExceptionHandlerClassName : $productionExceptionHandlerClassName;
                 $displayErrors = $ipMatchesDevelopmentSystem ? 1 : 0;
                 $exceptionalErrors = $ipMatchesDevelopmentSystem ? $exceptionalErrors : 0;

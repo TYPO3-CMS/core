@@ -21,7 +21,7 @@ declare(strict_types=1);
 function debug(mixed $variable = '', ?string $title = null): void
 {
     if (!\TYPO3\CMS\Core\Utility\GeneralUtility::cmpIP(
-        \TYPO3\CMS\Core\Utility\GeneralUtility::getIndpEnv('REMOTE_ADDR'),
+        \TYPO3\CMS\Core\Http\NormalizedParams::createFromServerParams($_SERVER)->getRemoteAddress(),
         $GLOBALS['TYPO3_CONF_VARS']['SYS']['devIPmask']
     )
     ) {

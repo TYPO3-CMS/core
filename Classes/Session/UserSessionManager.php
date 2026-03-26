@@ -155,7 +155,8 @@ class UserSessionManager implements LoggerAwareInterface
      */
     public function fixateAnonymousSession(UserSession $session, bool $isPermanent = false): UserSession
     {
-        $sessionIpLock = $this->ipLocker->getSessionIpLock((string)GeneralUtility::getIndpEnv('REMOTE_ADDR'));
+        // @todo: Refactor. Get Request or at least remote address hand over
+        $sessionIpLock = $this->ipLocker->getSessionIpLock(NormalizedParams::createFromServerParams($_SERVER)->getRemoteAddress());
         $sessionRecord = $session->toArray();
         $sessionRecord['ses_iplock'] = $sessionIpLock;
         // Ensure the user is not set, as this is always an anonymous session (see elevateToFixatedUserSession)
@@ -186,7 +187,8 @@ class UserSessionManager implements LoggerAwareInterface
         // Delete any session entry first
         $this->sessionBackend->remove($sessionId);
         // Re-create session entry
-        $sessionIpLock = $this->ipLocker->getSessionIpLock((string)GeneralUtility::getIndpEnv('REMOTE_ADDR'));
+        // @todo: Refactor. Get Request or at least remote address hand over
+        $sessionIpLock = $this->ipLocker->getSessionIpLock(NormalizedParams::createFromServerParams($_SERVER)->getRemoteAddress());
         $sessionRecord = [
             'ses_iplock' => $sessionIpLock,
             'ses_userid' => $userId,
@@ -306,8 +308,9 @@ class UserSessionManager implements LoggerAwareInterface
             }
             // If the session does not match the current IP lock, it should be treated as invalid
             // and a new session should be created.
+            // @todo: Refactor. Get Request or at least remote address hand over
             if ($this->ipLocker->validateRemoteAddressAgainstSessionIpLock(
-                (string)GeneralUtility::getIndpEnv('REMOTE_ADDR'),
+                NormalizedParams::createFromServerParams($_SERVER)->getRemoteAddress(),
                 $sessionRecord['ses_iplock']
             )) {
                 return UserSession::createFromRecord($id, $sessionRecord);

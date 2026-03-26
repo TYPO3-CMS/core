@@ -23,7 +23,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerTrait;
 use TYPO3\CMS\Core\Error\DebugExceptionHandler;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
 /**
@@ -126,7 +125,11 @@ final class DebugExceptionHandlerTest extends UnitTestCase
 
         $subject->setLogger($logger);
 
-        GeneralUtility::setIndpEnv('TYPO3_REQUEST_URL', $originalUrl);
+        $urlParts = parse_url($originalUrl);
+        $_SERVER['HTTP_HOST'] = $urlParts['host'] ?? 'localhost';
+        $_SERVER['REQUEST_URI'] = ($urlParts['path'] ?? '/') . (isset($urlParts['query']) ? '?' . $urlParts['query'] : '');
+        $_SERVER['SCRIPT_NAME'] = $urlParts['path'] ?? '/';
+        $_SERVER['HTTPS'] = ($urlParts['scheme'] ?? 'http') === 'https' ? 'on' : '';
 
         $exception = new \Exception('message', 1476049367);
         ob_start();

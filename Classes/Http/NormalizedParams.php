@@ -299,6 +299,35 @@ class NormalizedParams
         $this->queryString = $serverParams['QUERY_STRING'] ?? '';
     }
 
+    /**
+     * Factory method, to allow TYPO3 to handle configuration options directly.
+     *
+     * @param array $serverParams - could be fulfilled by $_SERVER (on web requests)
+     * @internal framework method. Not part of TYPO3 API.
+     */
+    public static function createFromServerParams(array $serverParams, ?array $systemConfiguration = null): self
+    {
+        return new NormalizedParams(
+            $serverParams,
+            $systemConfiguration ?? $GLOBALS['TYPO3_CONF_VARS']['SYS'],
+            Environment::getCurrentScript(),
+            Environment::getPublicPath()
+        );
+    }
+
+    /**
+     * Factory method for creating normalized params from a PSR-7 server request object
+     *
+     * @internal framework method. Not part of TYPO3 API.
+     */
+    public static function createFromRequest(ServerRequestInterface $request, ?array $systemConfiguration = null): self
+    {
+        return static::createFromServerParams(
+            $request->getServerParams(),
+            $systemConfiguration ?? $GLOBALS['TYPO3_CONF_VARS']['SYS']
+        );
+    }
+
     private static function encodeFileSystemPathComponentForUrlPath(string $path): string
     {
         return implode('/', array_map(rawurlencode(...), explode('/', $path)));
@@ -535,8 +564,8 @@ class NormalizedParams
                 // Default if reverseProxyHeaderMultiValue is not set or set to 'none', instead of 'first' / 'last' is to
                 // ignore $serverParams['HTTP_X_FORWARDED_HOST']
                 // @todo: Maybe this default is stupid: Both SYS/reverseProxyIP hand SYS/reverseProxyHeaderMultiValue have to
-                // @todo: be configured for a working setup. It would be easier to only configure SYS/reverseProxyIP and fall
-                // @todo: back to "first" if SYS/reverseProxyHeaderMultiValue is not set.
+                //        be configured for a working setup. It would be easier to only configure SYS/reverseProxyIP and fall
+                //        back to "first" if SYS/reverseProxyHeaderMultiValue is not set.
                 if ($configuredReverseProxyHeaderMultiValue === 'last') {
                     $xForwardedHost = array_pop($xForwardedHostArray);
                 } elseif ($configuredReverseProxyHeaderMultiValue === 'first') {
@@ -804,31 +833,5 @@ class NormalizedParams
     protected static function determineSiteScript(string $requestUrl, string $siteUrl): string
     {
         return substr($requestUrl, strlen($siteUrl));
-    }
-
-    /**
-     * Factory method, to allow TYPO3 to handle configuration options directly.
-     *
-     * @param array $serverParams - could be fulfilled by $_SERVER (on web requests)
-     */
-    public static function createFromServerParams(array $serverParams, ?array $systemConfiguration = null): self
-    {
-        return new NormalizedParams(
-            $serverParams,
-            $systemConfiguration ?? $GLOBALS['TYPO3_CONF_VARS']['SYS'],
-            Environment::getCurrentScript(),
-            Environment::getPublicPath()
-        );
-    }
-
-    /**
-     * Factory method for creating normalized params from a PSR-7 server request object
-     */
-    public static function createFromRequest(ServerRequestInterface $request, ?array $systemConfiguration = null): self
-    {
-        return static::createFromServerParams(
-            $request->getServerParams(),
-            $systemConfiguration ?? $GLOBALS['TYPO3_CONF_VARS']['SYS']
-        );
     }
 }
