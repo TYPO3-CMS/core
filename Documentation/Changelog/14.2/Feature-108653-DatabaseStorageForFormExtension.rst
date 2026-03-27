@@ -90,26 +90,26 @@ is denied through Page TSconfig:
 CLI command: transfer between storages
 --------------------------------------
 
-A new CLI command :bash:`form:formdefinition:transfer` allows transferring form
+A new CLI command :bash:`form:definition:transfer` allows transferring form
 definitions between any two storage backends. This is particularly useful for
 migrating file-based forms to database storage from the command line.
 
 ..  code-block:: bash
 
     # Transfer all forms from file mounts to database
-    bin/typo3 form:formdefinition:transfer --source=filemount --target=database
+    bin/typo3 form:definition:transfer --source=filemount --target=database
 
     # Transfer a specific form by its identifier
-    bin/typo3 form:formdefinition:transfer --source=extension --target=database --form-identifier=contact
+    bin/typo3 form:definition:transfer --source=extension --target=database --form-identifier=contact
 
     # Move forms (transfer + delete from source)
-    bin/typo3 form:formdefinition:transfer --source=filemount --target=database --move
+    bin/typo3 form:definition:transfer --source=filemount --target=database --move
 
     # Dry-run: preview what would be transferred without making changes
-    bin/typo3 form:formdefinition:transfer --source=filemount --target=database --dry-run
+    bin/typo3 form:definition:transfer --source=filemount --target=database --dry-run
 
     # Transfer to a specific target location (PID for database storage)
-    bin/typo3 form:formdefinition:transfer --source=filemount --target=database --target-location=0
+    bin/typo3 form:definition:transfer --source=filemount --target=database --target-location=0
 
 Available options:
 

@@ -129,18 +129,18 @@ Migration
     due to file permission issues), delete them manually from the file system
     after confirming the migration was successful.
 
-Alternatively, the CLI command :bash:`form:formdefinition:transfer` can be used
+Alternatively, the CLI command :bash:`form:definition:transfer` can be used
 to transfer forms between storages:
 
 ..  code-block:: bash
 
     # Transfer all file mount forms to database
-    bin/typo3 form:formdefinition:transfer --source=filemount --target=database
+    bin/typo3 form:definition:transfer --source=filemount --target=database
 
     # Move (transfer + delete source) in one step
-    bin/typo3 form:formdefinition:transfer --source=filemount --target=database --move
+    bin/typo3 form:definition:transfer --source=filemount --target=database --move
 
     # Preview without changes
-    bin/typo3 form:formdefinition:transfer --source=filemount --target=database --dry-run
+    bin/typo3 form:definition:transfer --source=filemount --target=database --dry-run
 
 ..  index:: YAML, FullyScanned, ext:form
