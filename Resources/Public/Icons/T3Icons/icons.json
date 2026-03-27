@@ -1568,6 +1568,13 @@
       "sprite": "sprites/actions.svg#actions-form-insert-after",
       "bidi": false
     },
+    "actions-form-insert-before": {
+      "identifier": "actions-form-insert-before",
+      "category": "actions",
+      "svg": "svgs/actions/actions-form-insert-before.svg",
+      "sprite": "sprites/actions.svg#actions-form-insert-before",
+      "bidi": false
+    },
     "actions-form-insert-in": {
       "identifier": "actions-form-insert-in",
       "category": "actions",
@@ -2672,6 +2679,20 @@
       "category": "actions",
       "svg": "svgs/actions/actions-wallet.svg",
       "sprite": "sprites/actions.svg#actions-wallet",
+      "bidi": false
+    },
+    "actions-wand-sparkles": {
+      "identifier": "actions-wand-sparkles",
+      "category": "actions",
+      "svg": "svgs/actions/actions-wand-sparkles.svg",
+      "sprite": "sprites/actions.svg#actions-wand-sparkles",
+      "bidi": false
+    },
+    "actions-wand": {
+      "identifier": "actions-wand",
+      "category": "actions",
+      "svg": "svgs/actions/actions-wand.svg",
+      "sprite": "sprites/actions.svg#actions-wand",
       "bidi": false
     },
     "actions-wave": {
@@ -4940,6 +4961,13 @@
       "category": "module",
       "svg": "svgs/module/module-adminpanel.svg",
       "sprite": "sprites/module.svg#module-adminpanel",
+      "bidi": false
+    },
+    "module-assist": {
+      "identifier": "module-assist",
+      "category": "module",
+      "svg": "svgs/module/module-assist.svg",
+      "sprite": "sprites/module.svg#module-assist",
       "bidi": false
     },
     "module-belog": {
