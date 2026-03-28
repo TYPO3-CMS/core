@@ -42,7 +42,7 @@ use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Reporting\ReportStatus;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Scope;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 
-final class BeforePersitingReportEventTest extends FunctionalTestCase
+final class BeforePersistingReportEventTest extends FunctionalTestCase
 {
     #[Test]
     public function beforePersistingReportEventCanModifyReport(): void
