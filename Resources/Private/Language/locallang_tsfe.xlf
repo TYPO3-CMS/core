@@ -23,7 +23,7 @@
         <source>Publish pages</source>
       </trans-unit>
       <trans-unit id="publish_doit">
-        <source>Publish now!</source>
+        <source>Publish now</source>
       </trans-unit>
       <trans-unit id="tsdebug">
         <source>TypoScript</source>
