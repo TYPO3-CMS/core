@@ -99,9 +99,8 @@ because backend modules rely on their availability. One such case is the form
 framework backend module which uses
 :typoscript:`module.tx_form.settings.yamlConfigurations` as a registry for
 extension-provided form configuration. Global form configuration can be loaded
-via :php-short:`\TYPO3\CMS\Core\Utility\ExtensionManagementUtility` as described
-in
-:ref:`YAML registration for the backend via addTypoScriptSetup() <typo3/cms-form:concepts-configuration-yamlregistration-backend-addtyposcriptsetup>`
+as described in
+:ref:`YAML registration <typo3/cms-form:concepts-configuration-yamlregistration>`
 Please make sure to only load backend-related form TypoScript globally and to
 provide TypoScript related to frontend rendering via site sets.
 
