@@ -117,7 +117,7 @@
 	},
 	"extra": {
 		"branch-alias": {
-			"dev-main": "14.2.x-dev"
+			"dev-main": "14.3.x-dev"
 		},
 		"typo3/cms": {
 			"Package": {
