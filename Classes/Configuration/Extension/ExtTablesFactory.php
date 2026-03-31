@@ -25,6 +25,7 @@ use TYPO3\CMS\Core\Package\PackageManager;
 
 /**
  * @internal Bootstrap related ext_tables loading. Extensions must not use this.
+ * @deprecated this file will vanish in TYPO3 v15.0
  */
 #[Autoconfigure(public: true)]
 final readonly class ExtTablesFactory
@@ -68,6 +69,15 @@ final readonly class ExtTablesFactory
             $extensionKey = $package->getPackageKey();
             $extTablesPath = $package->getPackagePath() . 'ext_tables.php';
             if (@file_exists($extTablesPath)) {
+                if (!$package->getPackageMetaData()->isFrameworkType()) {
+                    trigger_error(
+                        'Loading ext_tables.php of extension "' . $extensionKey . '" has been'
+                        . ' deprecated in TYPO3 v14.3 and will be removed in TYPO3 v15.0.'
+                        . ' Register backend modules, routes and other TCA-unrelated configurations'
+                        . ' in Configuration/Services.yaml or appropriate Configuration/ files instead.',
+                        E_USER_DEPRECATED
+                    );
+                }
                 // Include a header per extension to make the cache file more readable
                 $phpCodeToCache[] = '/**';
                 $phpCodeToCache[] = ' * Extension: ' . $extensionKey;
@@ -96,6 +106,15 @@ final readonly class ExtTablesFactory
         foreach ($this->packageManager->getActivePackages() as $package) {
             $extTablesPath = $package->getPackagePath() . 'ext_tables.php';
             if (file_exists($extTablesPath)) {
+                if (!$package->getPackageMetaData()->isFrameworkType()) {
+                    trigger_error(
+                        'Loading ext_tables.php of extension "' . $package->getPackageKey() . '" has been'
+                        . ' deprecated in TYPO3 v14.3 and will be removed in TYPO3 v15.0.'
+                        . ' Register backend modules, routes and other TCA-unrelated configurations'
+                        . ' in Configuration/Services.yaml or appropriate Configuration/ files instead.',
+                        E_USER_DEPRECATED
+                    );
+                }
                 require $extTablesPath;
             }
         }
